@@ -1,58 +1,41 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.handler.commands;
 
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.CallType;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.KeyboardUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import static com.evgeniyfedorchenko.animalshelter.telegram.handler.commands.MessageText.HELP;
+import static com.evgeniyfedorchenko.animalshelter.telegram.handler.CallType.*;
 
 @Component
 public class HelpCommand implements Command {
 
+    private final CallType callType = HELP;
+
     @Override
     public String getTitle() {
-        return "/help";
+        return callType.getTitle();
     }
 
     @Override
-    public SendMessage apply(Message message) {
+    public SendMessage apply(String chatId) {
 
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(message.getChatId());
-        sendMessage.setText(HELP.getText());
+        sendMessage.setChatId(chatId);
+        sendMessage.setText(callType.getAnswer());
 
-        InlineKeyboardMarkup markup = getInlineKeyboardMarkup();
-        sendMessage.setReplyMarkup(markup);
+        Map<String, String> keyboardData = new LinkedHashMap<>() {{
+            put("Позвать волонтера", CALL_VOLUNTEER.getTitle());
+            put("Начать сначала",    START.getTitle());
+            put("Назад",             START.getTitle());
+        }};
 
+        InlineKeyboardMarkup keyboardMarkup = KeyboardUtils.getMarkupWithOneLinesButtons(keyboardData);
+        sendMessage.setReplyMarkup(keyboardMarkup);
         return sendMessage;
-    }
-
-    private InlineKeyboardMarkup getInlineKeyboardMarkup() {
-
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        List<InlineKeyboardButton> row = new ArrayList<>();
-        List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
-
-        row.add(getButton("Позвать волонтера"));
-        rowList.add(row);
-
-        row = new ArrayList<>();
-        row.add(getButton("Начать сначала"));
-        rowList.add(row);
-
-        inlineKeyboardMarkup.setKeyboard(rowList);
-        return inlineKeyboardMarkup;
-    }
-
-    private InlineKeyboardButton getButton(String text) {
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
-        inlineKeyboardButton.setText(text);
-        inlineKeyboardButton.setCallbackData("Callback");
-        return inlineKeyboardButton;
     }
 }
