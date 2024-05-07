@@ -32,14 +32,14 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
 
-        logger.info("Processing has BEGUN for update: {}", update);
-
         if (update != null) {
+
+            logger.info("Processing has BEGUN for updateID {}", update.getUpdateId());
 
             BotApiMethod<? extends Serializable> distribute = updateDistributor.distribute(update);
             this.send(distribute);
-            logger.info("Processing has successfully ENDED for update: {}", update);
 
+            logger.info("Processing has successfully ENDED for updateID {}", update.getUpdateId());
         }
     }
 

@@ -4,8 +4,6 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageTe
 
 public interface Callback {
 
-    String getCallbackData();
-
     EditMessageText apply(String chatId, Integer messageId);
 
 }

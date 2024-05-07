@@ -1,11 +1,14 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.handler;
 
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.*;
 
-public class KeyboardUtils {
+import static com.evgeniyfedorchenko.animalshelter.telegram.handler.CallType.MAIN_HOW_TAKE_ANIMAL;
+
+public class ButtonUtils {
 
 // todo связать тексты кнопок и их колбеки в карту и хранить её тут, вместо того,
 //      чтобы передавать постоянно и то и другое. А лучше вообще прямо в CallType
@@ -19,18 +22,9 @@ public class KeyboardUtils {
      * @return Готовая разметка для клавиатуры
      */
     public static InlineKeyboardMarkup getMarkupWithOneLinesButtons(Map<String, String> keyboardData) {
+
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
-
-//        Нужно развернуть мапу
-//        List<Map.Entry<String, String>> entries = new ArrayList<>(keyboardData.entrySet());
-//        Collections.reverse(entries);
-//
-//        entries.forEach(entry -> {
-//            List<InlineKeyboardButton> row = new ArrayList<>();
-//            row.add(getButton(entry.getKey(), entry.getValue()));
-//            rowList.add(row);
-//        });
 
         keyboardData.forEach((key, value) -> {
             List<InlineKeyboardButton> row = new ArrayList<>();
@@ -49,5 +43,18 @@ public class KeyboardUtils {
         inlineKeyboardButton.setCallbackData(textToCallback);
 
         return inlineKeyboardButton;
+    }
+
+    public EditMessageText performCallback(ChatAction chatAction) {
+
+        EditMessageText editMessage = new EditMessageText();
+
+        editMessage.setChatId(chatAction.getChatId());
+        editMessage.setMessageId(chatAction.getMessageId());
+        editMessage.setText(chatAction.getCallType().getAnswer());
+
+        InlineKeyboardMarkup keyboardMarkup = getMarkupWithOneLinesButtons(chatAction.getKeyboardData());
+        editMessage.setReplyMarkup(keyboardMarkup);
+        return editMessage;
     }
 }

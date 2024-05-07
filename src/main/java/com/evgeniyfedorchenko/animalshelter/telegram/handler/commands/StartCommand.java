@@ -1,7 +1,7 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.handler.commands;
 
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.CallType;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.KeyboardUtils;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.ButtonUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -30,12 +30,12 @@ public class StartCommand implements Command {
         sendMessage.setText(callType.getAnswer());
 
         Map<String, String> keyboardData = new LinkedHashMap<>() {{
-            put("О нашем приюте",               MAIN_ABOUT.getTitle());
-            put("Как взять животное из приюта", MAIN_HOW_TAKE_ANIMAL.getTitle());
-            put("Прислать отчет о питомце",     MAIN_REPORT_MENU.getTitle());
+            put("О нашем приюте",               MAIN_ABOUT.getTitle());           // есть
+            put("Как взять животное из приюта", MAIN_HOW_TAKE_ANIMAL.getTitle()); // есть
+            put("Прислать отчет о питомце",     MAIN_REPORT_MENU.getTitle());     // есть
         }};
 
-        InlineKeyboardMarkup keyboardMarkup = KeyboardUtils.getMarkupWithOneLinesButtons(keyboardData);
+        InlineKeyboardMarkup keyboardMarkup = ButtonUtils.getMarkupWithOneLinesButtons(keyboardData);
         sendMessage.setReplyMarkup(keyboardMarkup);
 
         return sendMessage;
