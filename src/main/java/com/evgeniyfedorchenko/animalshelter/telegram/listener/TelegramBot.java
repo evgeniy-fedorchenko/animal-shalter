@@ -37,12 +37,14 @@ public class TelegramBot extends TelegramLongPollingBot {
             logger.info("Processing has BEGUN for updateID {}", update.getUpdateId());
 
             BotApiMethod<? extends Serializable> distribute = updateDistributor.distribute(update);
-            this.send(distribute);
+            send(distribute);
 
             logger.info("Processing has successfully ENDED for updateID {}", update.getUpdateId());
         }
     }
 
+//    Нужно ли тут synchronized? Ну типа чтоб не перемешивались отправляемые сообщения
+//    из разных потоков, когда несколько людей обратились к боту одновременно
     private synchronized void send(BotApiMethod<? extends Serializable> messToSend) {
 
         try {

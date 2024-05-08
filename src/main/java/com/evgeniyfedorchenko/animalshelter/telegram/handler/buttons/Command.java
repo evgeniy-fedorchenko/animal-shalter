@@ -1,4 +1,4 @@
-package com.evgeniyfedorchenko.animalshelter.telegram.handler.commands;
+package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
@@ -12,7 +12,9 @@ public interface Command {
      * @return Возвращает строковое представление вызова. Так, как оно приходит из телеграма,
      * чтобы можно было отловить по этому параметру
      */
-    String getTitle();
+    default String getTitle() {
+        return "/" + this.getClass().getSimpleName().toLowerCase();
+    }
 
     /**
      * Метод, который выполняет логику, заложенную в команду и формирует ответное сообщение
