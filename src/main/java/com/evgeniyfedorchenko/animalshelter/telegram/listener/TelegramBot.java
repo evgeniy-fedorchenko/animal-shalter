@@ -1,25 +1,27 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.listener;
 
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.UpdateHandler;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.UpdateDistributor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.io.Serializable;
 
 @Component
 public class TelegramBot extends TelegramLongPollingBot {
 
     private final Logger logger = LoggerFactory.getLogger(TelegramBot.class);
-    private final UpdateHandler updateHandler;
+
+    private final UpdateDistributor updateDistributor;
 
     public TelegramBot(@Value("${telegram.bot.token}") String botToken,
-                       UpdateHandler updateHandler) {
+                       UpdateDistributor updateDistributor) {
         super(botToken);
-        this.updateHandler = updateHandler;
+        this.updateDistributor = updateDistributor;
     }
 
     @Override
@@ -30,49 +32,26 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
 
-        logger.info("Processing has BEGUN for update: {}", update);
-
         if (update != null) {
 
-            try {
-                execute(updateHandler.handle(update));
-            } catch (TelegramApiException ex) {
-                logger.error(ex.getMessage());
-            }
+            logger.info("Processing has BEGUN for updateID {}", update.getUpdateId());
 
+            BotApiMethod<? extends Serializable> distribute = updateDistributor.distribute(update);
+            send(distribute);
+
+            logger.info("Processing has successfully ENDED for updateID {}", update.getUpdateId());
+        }
+    }
+
+//    Нужно ли тут synchronized? Ну типа чтоб не перемешивались отправляемые сообщения
+//    из разных потоков, когда несколько людей обратились к боту одновременно
+    private synchronized void send(BotApiMethod<? extends Serializable> messToSend) {
+
+        try {
+            execute(messToSend);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage());
         }
 
-        if (update.hasMessage()) {
-
-
-
-        } else if (update.hasCallbackQuery()) {
-
-        }
-
-
-        if (update.hasMessage() && update.getMessage().hasText()) {
-
-        } else if (update.hasCallbackQuery()) {
-            String call_data = update.getCallbackQuery().getData();
-            long message_id = update.getCallbackQuery().getMessage().getMessageId();
-            long chat_id = update.getCallbackQuery().getMessage().getChatId();
-
-            System.out.println(call_data);
-            System.out.println(message_id);
-            System.out.println(chat_id);
-        }
-
-        if (update == null || !update.hasMessage()) {
-            logger.info("Failed to process for update: {}. Cause: update or update.getMessage is null", update);
-            return;
-        } else if (update.hasCallbackQuery()) {
-
-        }
-
-
-
-
-        logger.info("Processing has successfully ENDED for update: {}", update);
     }
 }
