@@ -52,5 +52,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         } catch (Exception ex) {
             logger.error(ex.getMessage());
         }
+
     }
 }

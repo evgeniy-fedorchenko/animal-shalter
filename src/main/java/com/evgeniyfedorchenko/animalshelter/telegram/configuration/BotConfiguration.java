@@ -13,6 +13,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 public class BotConfiguration {
 
     private final Logger logger = LoggerFactory.getLogger(BotConfiguration.class);
+
     @Bean
     public TelegramBotsApi telegramBotsApi(TelegramBot telegramBot) {
 
