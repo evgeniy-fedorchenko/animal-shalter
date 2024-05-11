@@ -1,18 +1,16 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.configuration;
 
 import com.evgeniyfedorchenko.animalshelter.telegram.listener.TelegramBot;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
+@Slf4j
 @Configuration
 public class BotConfiguration {
-
-    private final Logger logger = LoggerFactory.getLogger(BotConfiguration.class);
 
     @Bean
     public TelegramBotsApi telegramBotsApi(TelegramBot telegramBot) {
@@ -23,7 +21,7 @@ public class BotConfiguration {
             return telegramBotsApi;
 
         } catch (TelegramApiException ex) {
-            logger.error("Failed to register the bot, cause: {}", ex.getMessage());
+            log.error("Failed to register the bot, cause: {}", ex.getMessage());
             throw new RuntimeException(ex);
         }
     }

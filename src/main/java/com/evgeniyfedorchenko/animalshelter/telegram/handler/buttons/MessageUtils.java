@@ -1,8 +1,7 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons;
 
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.CallType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -14,12 +13,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
+@Slf4j
 public class MessageUtils {
 
-    private final Logger logger = LoggerFactory.getLogger(MessageUtils.class);
-
     public static final Map<String, CallType> COMPLIANCE_TABLE = new HashMap<>(Map.of(
-//        todo связать тут CallType и их кнопки. И когда нужно с помощью одного получить другое - обращаться сюда
+//        todo связать тут названия бинов кнопок и их CallType
+//         И когда нужно с помощью одного получить другое - обращаться сюда
+
     ));
 
     public EditMessageText applyCallback(MessageModel messageModel) {
@@ -83,7 +83,7 @@ public class MessageUtils {
 
     public void setUrlToButton(EditMessageText editMessage) {
 
-          /* Внешний лист содержит 5 внутренних листов, каждый внутренний лист содержит по одной кнопке
+          /* Внешний лист содержит 5 внутренних листов, каждый внутренний лист содержит по одной кнопке.
              Находим индекс кнопки с текстом "Наш сайт" и удаляем её. Если не находим -
              - просто оставляем клавиатуру, как есть - готовую, но без ссылки */
 
@@ -101,6 +101,6 @@ public class MessageUtils {
                     keyboardMarkup.setKeyboard(keyboardList);
                     editMessage.setReplyMarkup(keyboardMarkup);
 
-                }, () -> logger.warn("Filed to add a website-link because the button was not found"));
+                }, () -> log.warn("Filed to add a website-link because the button was not found"));
     }
 }
