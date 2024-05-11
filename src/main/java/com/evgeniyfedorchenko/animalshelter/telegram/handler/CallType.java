@@ -55,7 +55,6 @@ public enum CallType {
             🥇🐶
             """),
 
-
     /*================================== On MAIN_ABOUT button ==================================*/
     SECURITY_CONTACTS(CallbackFactory.SecurityContacts.class.getSimpleName(), """
             Охрана приюта работает круглосуточно. Если у вас возникли вопросы или проблемы, пожалуйста, свяжитесь с нами:
@@ -174,11 +173,10 @@ public enum CallType {
     }
 
     public String getTitle() {
-        return title;
+        return this.title;
     }
 
     public String getAnswer() {
-        return answer;
+        return this.answer;
     }
-
 }

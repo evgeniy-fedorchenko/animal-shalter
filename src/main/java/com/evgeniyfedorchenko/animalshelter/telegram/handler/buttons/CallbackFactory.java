@@ -18,7 +18,7 @@ public class CallbackFactory {
 
 
     /*================================== From "/start" command ==================================*/
-    @Component
+    @Component("MainAboutShelter")
     public class MainAboutShelter implements Callback {
         @Override
         public EditMessageText apply(String chatId, Integer messageId) {
@@ -36,7 +36,7 @@ public class CallbackFactory {
         }
     }
 
-    @Component
+    @Component("MainHowTakeAnimal")
     public class MainHowTakeAnimal implements Callback {
         @Override
         public EditMessageText apply(String chatId, Integer messageId) {
@@ -52,7 +52,7 @@ public class CallbackFactory {
         }
     }
 
-    @Component
+    @Component("MainReportMenu")
     public class MainReportMenu implements Callback {
         @Override
         public EditMessageText apply(String chatId, Integer messageId) {
@@ -66,7 +66,7 @@ public class CallbackFactory {
     }
 
     /*================================== From MAIN_ABOUT callback ==================================*/
-    @Component
+    @Component("SecurityContacts")
     public class SecurityContacts implements Callback {
         @Override
         public EditMessageText apply(String chatId, Integer messageId) {
@@ -76,7 +76,7 @@ public class CallbackFactory {
         }
     }
 
-    @Component
+    @Component("SafetyAtShelter")
     public class SafetyAtShelter implements Callback {
         @Override
         public EditMessageText apply(String chatId, Integer messageId) {
@@ -87,7 +87,7 @@ public class CallbackFactory {
     }
 
     /*================================== From MAIN_REPORT_MENU callback ==================================*/
-    @Component
+    @Component("GetPatternReport")
     public class GetPatternReport implements Callback {
         @Override
         public EditMessageText apply(String chatId, Integer messageId) {
@@ -100,7 +100,7 @@ public class CallbackFactory {
     }
 
     /*================================== From MAIN_HOW_TAKE_ANIMAL callback ==================================*/
-    @Component
+    @Component("DatingRules")
     public class DatingRules implements Callback {
         @Override
         public EditMessageText apply(String chatId, Integer messageId) {
@@ -110,7 +110,7 @@ public class CallbackFactory {
         }
     }
 
-    @Component
+    @Component("HouseForAdultAnimal")
     public class HouseForAdultAnimal implements Callback {
         @Override
         public EditMessageText apply(String chatId, Integer messageId) {
@@ -120,7 +120,7 @@ public class CallbackFactory {
         }
     }
 
-    @Component
+    @Component("HouseForSmallAnimal")
     public class HouseForSmallAnimal implements Callback {
         @Override
         public EditMessageText apply(String chatId, Integer messageId) {
@@ -130,7 +130,7 @@ public class CallbackFactory {
         }
     }
 
-    @Component
+    @Component("AdoptionDocs")
     public class AdoptionDocs implements Callback {
         @Override
         public EditMessageText apply(String chatId, Integer messageId) {
@@ -140,7 +140,7 @@ public class CallbackFactory {
         }
     }
 
-    @Component
+    @Component("TransportPet")
     public class TransportPet implements Callback {
         @Override
         public EditMessageText apply(String chatId, Integer messageId) {
@@ -151,7 +151,7 @@ public class CallbackFactory {
     }
 
     /*================================== Command's callbacks ==================================*/
-    @Component
+    @Component("Start")
     public class BackToStart implements Callback {
         @Override
         public String getCallbackName() {
@@ -174,15 +174,15 @@ public class CallbackFactory {
         }
     }
 
-    @Component
+    @Component("Volunteer")
     public class VolunteerCallback implements Callback {
 
 //        TODO Может быть объединить классы VolunteerCallback и VolunteerCommand и реализовать в них оба интерфейса
 //         Аналогично с командой Start, но как-то нелогично, что CommandFactory реализует Callback в двух кнопках из трех
-        @Override
-        public String getCallbackName() {
-            return "Volunteer";
-        }
+//        @Override
+//        public String getCallbackName() {
+//            return "Volunteer";
+//        }
         @Override
         public EditMessageText apply(String chatId, Integer messageId) {
             return messageUtils.applyCallback(new MessageModel(chatId, messageId, VOLUNTEER, null));

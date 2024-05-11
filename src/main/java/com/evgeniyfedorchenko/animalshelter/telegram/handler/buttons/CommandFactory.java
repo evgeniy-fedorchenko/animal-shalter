@@ -1,7 +1,6 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
@@ -10,15 +9,14 @@ import java.util.Map;
 
 import static com.evgeniyfedorchenko.animalshelter.telegram.handler.CallType.*;
 
+@Slf4j
 @Component
 public class CommandFactory {
 
-    private final Logger logger = LoggerFactory.getLogger(CommandFactory.class);
-
     private final MessageUtils messageUtils = new MessageUtils();
-    public Map<String, String> keyboardData = new LinkedHashMap<>();
+    private final Map<String, String> keyboardData = new LinkedHashMap<>();
 
-    @Component
+    @Component("/start")
     public class Start implements Command {
         @Override
         public SendMessage apply(String chatId) {
@@ -31,7 +29,7 @@ public class CommandFactory {
         }
     }
 
-    @Component
+    @Component("/help")
     public class Help implements Command {
         @Override
         public SendMessage apply(String chatId) {
@@ -43,12 +41,12 @@ public class CommandFactory {
         }
     }
 
-    @Component
+    @Component("/volunteer")
     public class VolunteerCommand implements Command {
-        @Override
-        public String getTitle() {
-            return "/volunteer";
-        }
+//        @Override
+//        public String getTitle() {
+//            return "/volunteer";
+//        }
 
         @Override
         public SendMessage apply(String chatId) {
@@ -58,7 +56,7 @@ public class CommandFactory {
 
         private void callVolunteer() {
             // todo Реализовать вызов волонтера
-            logger.info("Calling volunteer...");
+            log.info("Calling volunteer...");
         }
     }
 }
