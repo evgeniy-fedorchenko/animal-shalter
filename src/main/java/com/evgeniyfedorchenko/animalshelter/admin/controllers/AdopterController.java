@@ -1,10 +1,10 @@
 package com.evgeniyfedorchenko.animalshelter.admin.controllers;
 
 import com.evgeniyfedorchenko.animalshelter.admin.annotations.IsFieldOf;
-import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.AddAdopterDocumentation;
-import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.DeleteAdopterDocumentation;
-import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.GetAdopterByIdDocumentation;
-import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.SearchAdoptersDocumentation;
+import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.adopter.AddAdopterDocumentation;
+import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.adopter.DeleteAdopterDocumentation;
+import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.adopter.GetAdopterByIdDocumentation;
+import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.adopter.SearchAdoptersDocumentation;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AdopterInputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AdopterOutputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Adopter;

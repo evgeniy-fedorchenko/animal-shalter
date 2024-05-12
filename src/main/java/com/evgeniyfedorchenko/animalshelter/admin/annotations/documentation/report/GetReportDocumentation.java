@@ -1,7 +1,6 @@
-package com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation;
+package com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.report;
 
-
-import com.evgeniyfedorchenko.animalshelter.backend.dto.AnimalOutputDto;
+import com.evgeniyfedorchenko.animalshelter.backend.dto.ReportOutputDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -16,27 +15,28 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
-@Operation(summary = "Getting existing animal by his id",
+@Operation(summary = "Getting existing report by his id",
         responses = {
                 @ApiResponse(
                         responseCode = "200",
-                        description = "Successful response of requested animal",
+                        description = "Successful response of requested report",
                         content = @Content(
                                 mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                schema = @Schema(implementation = AnimalOutputDto.class),
+                                schema = @Schema(implementation = ReportOutputDto.class),
                                 examples = @ExampleObject(
-                                        name = "Animal",
+                                        name = "Report",
                                         description = "Example of returned object",
-                                        value = "{\"id\":1,\"name\":\"Fluffy\",\"isAdult\":true,\"adopterId\":123,\"adopterChatId\":456,\"adopterName\":\"John Doe\"}"
+                                        // todo Вставить нормальный урл в пример
+                                        value = "{\"id\":1,\"diet\":\"Omnivore\",\"health\":\"Healthy\",\"changeBehavior\":\"Playful\",\"photoUrl\":\"https://example.com/animal-photo.jpg\",\"sendingAt\":\"2023-04-18T12:34:56Z\",\"adopterId\":123,\"adopterName\":\"John Doe\",\"animalId\":456,\"animalName\":\"Fluffy\"}"
                                 )
                         )
                 ),
                 @ApiResponse(
                         responseCode = "404",
-                        description = "No animal were found under the requested id. This response has no body",
+                        description = "No report were found under the requested id. This response has no body",
                         content = @Content
                 )
         }
 )
-public @interface GetAnimalByIdDocumentation {
+public @interface GetReportDocumentation {
 }

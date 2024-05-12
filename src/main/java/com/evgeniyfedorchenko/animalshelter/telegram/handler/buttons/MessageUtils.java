@@ -1,6 +1,5 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons;
 
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.CallType;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -16,15 +15,21 @@ import java.util.stream.IntStream;
 @Slf4j
 public class MessageUtils {
 
-    public static final Map<String, CallType> COMPLIANCE_TABLE = new HashMap<>(Map.of(
-//        todo связать тут названия бинов кнопок и их CallType
+    public static final Map<String, MessageData> COMPLIANCE_TABLE = new HashMap<>(Map.of(
+//        todo связать тут названия бинов кнопок и их MessageData
 //         И когда нужно с помощью одного получить другое - обращаться сюда
-
     ));
 
+
+    /**
+     * A method for making a callback. Converting a {@code MessageModel} object into a {@code EditMessageText} object.
+     * The map with the keyboard data will also be converted to {@code InlineKeyboardMarkup} if exists
+     * @param messageModel The object with the original message data
+     * @return Ready object to send to Telegram bot
+     */
     public EditMessageText applyCallback(MessageModel messageModel) {
 
-        EditMessageText editMessage = new EditMessageText(messageModel.getCallType().getAnswer());
+        EditMessageText editMessage = new EditMessageText(messageModel.getMessageData().getAnswer());
         editMessage.setChatId(messageModel.getChatId());
         editMessage.setMessageId(messageModel.getMessageId());
 
@@ -35,11 +40,17 @@ public class MessageUtils {
         return editMessage;
     }
 
+    /**
+     * A method for making a callback. Converting a {@code MessageModel} object into a {@code SendMessage} object.
+     * The map with the keyboard data will also be converted to {@code InlineKeyboardMarkup} if exists
+     * @param messageModel The object with the original message data
+     * @return Ready object to send to Telegram bot
+     */
     public SendMessage applyCommand(MessageModel messageModel) {
 
         SendMessage sendMessage = new SendMessage(
                 messageModel.getChatId(),
-                messageModel.getCallType().getAnswer()
+                messageModel.getMessageData().getAnswer()
         );
 
         if (messageModel.getKeyboardData() != null) {
@@ -83,9 +94,9 @@ public class MessageUtils {
 
     public void setUrlToButton(EditMessageText editMessage) {
 
-          /* Внешний лист содержит 5 внутренних листов, каждый внутренний лист содержит по одной кнопке.
-             Находим индекс кнопки с текстом "Наш сайт" и удаляем её. Если не находим -
-             - просто оставляем клавиатуру, как есть - готовую, но без ссылки */
+      /* Внешний лист содержит 5 внутренних листов, каждый внутренний лист содержит по одной кнопке.
+         Находим индекс кнопки с текстом "Наш сайт" и удаляем её. Если не находим -
+         - просто оставляем клавиатуру, как есть - готовую, но без ссылки */
 
         InlineKeyboardMarkup keyboardMarkup = editMessage.getReplyMarkup();
         List<List<InlineKeyboardButton>> keyboardList = keyboardMarkup.getKeyboard();

@@ -1,4 +1,4 @@
-package com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation;
+package com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.adopter;
 
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AdopterInputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AdopterOutputDto;

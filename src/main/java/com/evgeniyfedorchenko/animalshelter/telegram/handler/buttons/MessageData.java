@@ -1,8 +1,14 @@
-package com.evgeniyfedorchenko.animalshelter.telegram.handler;
+package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons;
 
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.CallbackFactory;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.*;
+import lombok.Getter;
 
-public enum CallType {
+
+/**
+ * The enumeration class containing all the information needed for a message that can be sent
+ */
+@Getter
+public enum MessageData {
 
     /*================================== Menu commands ==================================*/
     START("Start", """
@@ -27,7 +33,7 @@ public enum CallType {
 
 
     /*================================== On "/start" command ==================================*/
-    MAIN_ABOUT_SHELTER(CallbackFactory.MainAboutShelter.class.getSimpleName(), """
+    MAIN_ABOUT_SHELTER(MainAboutShelter.class.getSimpleName(), """
             Мы - команда неравнодушных людей, которые посвятили себя заботе о бездомных и брошенных животных, присоединяйтесь! 🫂
 
             Наш приют был основан в 2018 году с целью предоставить временный дом и необходимую помощь животным, оказавшимся в сложной ситуации. Мы принимаем кошек, собак и других домашних питомцев, которым нужна забота и поддержка 🐾
@@ -39,7 +45,7 @@ public enum CallType {
             Итак, что бы вы хотели сделать? 😇
             """),
 
-    MAIN_HOW_TAKE_ANIMAL(CallbackFactory.MainHowTakeAnimal.class.getSimpleName(), """
+    MAIN_HOW_TAKE_ANIMAL(MainHowTakeAnimal.class.getSimpleName(), """
             Мы любим наших пушистых друзей 🐾, а потому доверяем их только в добрые руки ❤️
             Чтобы усыновить пушистого друга, нужно быть готовым к этому, но не волнуйтесь, это не сложно. Ниже вы найдете список необходимых документов и рекомендаций
             Как будете готовы, просто приезжайте в гости. Адрес и время работы вы можете найти в главном меню
@@ -47,7 +53,7 @@ public enum CallType {
             До встречи! 🥳
             """),
 
-    MAIN_REPORT_MENU(CallbackFactory.MainReportMenu.class.getSimpleName(), """
+    MAIN_REPORT_MENU(MainReportMenu.class.getSimpleName(), """
             Спасибо, что не забываете о нас! 😊
             И что относитесь к своему новому другу со всей ответственностью, это очень похвально
             Если вы готовы прислать отчет, то просто нажмите на "Прислать отчет"; либо вы можете посмотреть как это делать лучше всего. И мы рекомендуем вам посмотреть, если вы делаете это в первый раз 😉  
@@ -56,7 +62,7 @@ public enum CallType {
             """),
 
     /*================================== On MAIN_ABOUT button ==================================*/
-    SECURITY_CONTACTS(CallbackFactory.SecurityContacts.class.getSimpleName(), """
+    SECURITY_CONTACTS(SecurityContacts.class.getSimpleName(), """
             Охрана приюта работает круглосуточно. Если у вас возникли вопросы или проблемы, пожалуйста, свяжитесь с нами:
                         
             Телефон: +7 (123) 456-78-90
@@ -65,7 +71,7 @@ public enum CallType {
             Наши сотрудники всегда готовы помочь и ответить на ваши обращения. Спасибо за вашу заботу о животных! 🐾
             """),
 
-    SAFETY_AT_SHELTER(CallbackFactory.SafetyAtShelter.class.getSimpleName(), """
+    SAFETY_AT_SHELTER(SafetyAtShelter.class.getSimpleName(), """
             Правила техники безопасности в нашем уютном приюте 🐾
                         
                 1. Будьте осторожны и ласковы при общении с нашими питомцами. Гладьте их только с разрешения наших сотрудников 🐶🐱
@@ -83,7 +89,7 @@ public enum CallType {
 
 
     /*================================== On MAIN_REPORT_MENU button ==================================*/
-    GET_PATTERN_REPORT(CallbackFactory.GetPatternReport.class.getSimpleName(), """
+    GET_PATTERN_REPORT(GetPatternReport.class.getSimpleName(), """
             Отлично, мы очень рады, что вы столь дисциплинированы!
             Хороший отчет должен состоять из четырех небольших частей. Все просто, смотрите сами, вам нужно прислать:
             1. Фото вашего животного 🖼
@@ -98,7 +104,7 @@ public enum CallType {
 
 
     /*================================== On MAIN_HOW_TAKE_ANIMAL button ==================================*/
-    DATING_RULES(CallbackFactory.DatingRules.class.getSimpleName(), """
+    DATING_RULES(DatingRules.class.getSimpleName(), """
             Давайте познакомимся с нашими питомцами! 🐶🐱
                        
             1. Подходите к животному медленно и спокойно, не делайте резких движений.
@@ -110,7 +116,7 @@ public enum CallType {
              Давайте вместе заботиться о наших пушистых друзьях! 
             """),
 
-    HOUSE_FOR_ADULT_ANIMAL(CallbackFactory.HouseForAdultAnimal.class.getSimpleName(), """
+    HOUSE_FOR_ADULT_ANIMAL(HouseForAdultAnimal.class.getSimpleName(), """
             Готовим дом для нового питомца! 🏠🐶🐱
                          
             1. Обеспечьте животному уютное и безопасное пространство - мягкую лежанку, игрушки, миски для еды и воды.
@@ -122,7 +128,7 @@ public enum CallType {
             Создайте для своего питомца идеальный дом, полный любви и заботы!
              """),
 
-    HOUSE_FOR_SMALL_ANIMAL(CallbackFactory.HouseForSmallAnimal.class.getSimpleName(), """
+    HOUSE_FOR_SMALL_ANIMAL(HouseForSmallAnimal.class.getSimpleName(), """
             Готовим дом для малыша! 🏠🐶🐱🐾
                          
             1. Создайте безопасное и уютное пространство с мягкими лежанками, игрушками и мисками.
@@ -134,7 +140,7 @@ public enum CallType {
             Сделайте дом вашего малыша идеальным, полным любви и заботы! 💕
              """),
 
-    ADOPTION_DOCS(CallbackFactory.AdoptionDocs.class.getSimpleName(), """
+    ADOPTION_DOCS(AdoptionDocs.class.getSimpleName(), """
             Готовимся к усыновлению нового друга! 🐶🐱🧾
                        
             Чтобы забрать питомца домой, вам понадобятся несколько важных документов:
@@ -147,7 +153,7 @@ public enum CallType {
             Вместе мы сделаем вашего нового пушистого друга по-настоящему счастливым! 🥰
             """),
 
-    TRANSPORT_PET(CallbackFactory.TransportPet.class.getSimpleName(), """
+    TRANSPORT_PET(TransportPet.class.getSimpleName(), """
             Перевозим питомца с заботой! 🚗🐶🐱
                         
             Чтобы ваш пушистый друг чувствовал себя комфортно во время поездки, соблюдайте несколько простых правил:
@@ -164,19 +170,22 @@ public enum CallType {
             """),
     BLANK("", "Обработка этой кнопки будет происходить в сервисах на бекенде, а там пока не все готово. Так что пока вот такая заглушка. Можете начать сначала /start");
 
-    private final String title;
+
+    /**
+     * The text of the callback, which can be added to the button so that when it is pressed
+     * it can be intercepted, and thus it becomes clear which button the user pressed in Telegram messenger.
+     * It should represent the name of the Spring's bean that will handle the corresponding button
+     */
+    private final String callbackData;
+
+    /**
+     * The text of the message itself, which can be sent via the telegram-bot to the user
+     */
     private final String answer;
 
-    CallType(String title, String answer) {
-        this.title = title;
+    MessageData(String callbackData, String answer) {
+        this.callbackData = callbackData;
         this.answer = answer;
     }
 
-    public String getTitle() {
-        return this.title;
-    }
-
-    public String getAnswer() {
-        return this.answer;
-    }
 }

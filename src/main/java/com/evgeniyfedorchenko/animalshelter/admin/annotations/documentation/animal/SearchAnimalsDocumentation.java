@@ -1,4 +1,4 @@
-package com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation;
+package com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.animal;
 
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AnimalOutputDto;
 import io.swagger.v3.oas.annotations.Operation;

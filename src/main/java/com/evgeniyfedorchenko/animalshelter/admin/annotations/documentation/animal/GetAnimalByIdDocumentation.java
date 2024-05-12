@@ -1,6 +1,7 @@
-package com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation;
+package com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.animal;
 
-import com.evgeniyfedorchenko.animalshelter.backend.dto.AdopterOutputDto;
+
+import com.evgeniyfedorchenko.animalshelter.backend.dto.AnimalOutputDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -15,27 +16,27 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
-@Operation(summary = "Getting existing adopter by his id",
+@Operation(summary = "Getting existing animal by his id",
         responses = {
                 @ApiResponse(
                         responseCode = "200",
-                        description = "Successful response of requested adopter",
+                        description = "Successful response of requested animal",
                         content = @Content(
                                 mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                schema = @Schema(implementation = AdopterOutputDto.class),
+                                schema = @Schema(implementation = AnimalOutputDto.class),
                                 examples = @ExampleObject(
-                                        name = "Adopter",
+                                        name = "Animal",
                                         description = "Example of returned object",
-                                        value = "{\n\"id\": 1,\n\"chatId\": 123456789,\n\"name\": \"John Doe\",\n\"phoneNumber\": \"+79991234567\",\n\"assignedReportsQuantity\": 30,\n\"animalId\": 42,\n\"animalName\": \"Fluffy\"\n}"
+                                        value = "{\"id\":1,\"name\":\"Fluffy\",\"isAdult\":true,\"adopterId\":123,\"adopterChatId\":456,\"adopterName\":\"John Doe\"}"
                                 )
                         )
                 ),
                 @ApiResponse(
                         responseCode = "404",
-                        description = "No adopters were found under the requested id. This response has no body",
+                        description = "No animal were found under the requested id. This response has no body",
                         content = @Content
                 )
         }
 )
-public @interface GetAdopterByIdDocumentation {
+public @interface GetAnimalByIdDocumentation {
 }
