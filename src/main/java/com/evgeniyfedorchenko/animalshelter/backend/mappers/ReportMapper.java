@@ -1,14 +1,20 @@
 package com.evgeniyfedorchenko.animalshelter.backend.mappers;
 
+import com.evgeniyfedorchenko.animalshelter.admin.controllers.ReportController;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.ReportOutputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Adopter;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Report;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Optional;
 
 @Component
 public class ReportMapper {
+
+    @Value("${server.port}")
+    private int port;
 
     public ReportOutputDto toDto(Report report) {
         ReportOutputDto reportOutputDto = new ReportOutputDto();
@@ -17,7 +23,7 @@ public class ReportMapper {
         reportOutputDto.setDiet(report.getDiet());
         reportOutputDto.setHealth(report.getHealth());
         reportOutputDto.setChangeBehavior(report.getChangeBehavior());
-        reportOutputDto.setPhotoUrl(generateUrl(report));
+        reportOutputDto.setPhotoUrl(generateUrl(String.valueOf(report.getId())));
         reportOutputDto.setSendingAt(report.getSendingAt());
 
         Adopter adopter = report.getAdopter();
@@ -33,19 +39,16 @@ public class ReportMapper {
         return reportOutputDto;
     }
 
-    private String generateUrl(Report report) {
-//        todo реализовать построение урла
-        return null;
-//        return UriComponentsBuilder.newInstance()
-//                .scheme("http")
-//                .host("localhost")
-//                .port(port)
-//                .path(StudentController.BASE_STUDENTS_URI)
-//                .pathSegment(String.valueOf(studentId), "avatar")
-//                .queryParam("large", queryParamValue)
-//
-//                .build()
-//                .toUri()
-//                .toString();
+    private String generateUrl(String reportId) {
+        return UriComponentsBuilder.newInstance()
+                .scheme("http")
+                .host("localhost")
+                .port(port)
+                .path(ReportController.BASE_REPORT_URI)
+                .pathSegment(String.valueOf(reportId), "report")
+
+                .build()
+                .toUri()
+                .toString();
     }
 }

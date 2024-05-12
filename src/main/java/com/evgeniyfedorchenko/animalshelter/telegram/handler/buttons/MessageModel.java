@@ -1,11 +1,11 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons;
 
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.MainHandler;
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.Callback;
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.commands.Command;
 import jakarta.annotation.Nullable;
 import lombok.Getter;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.MainHandler;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 
 import java.util.Map;
@@ -23,7 +23,7 @@ public class MessageModel {
     /**
      * Id of the chat for whom the future message is intended
      */
-    private final String chatId;
+    private final Long chatId;
 
     /**
      * Id of the message for whom the future message is intended
@@ -47,7 +47,7 @@ public class MessageModel {
     /**
      * Constructor for implementation of {@link Callback}
      */
-    public MessageModel(String chatId, Integer messageId, MessageData messageData, @Nullable Map<String, String> keyboardData) {
+    public MessageModel(Long chatId, Integer messageId, MessageData messageData, @Nullable Map<String, String> keyboardData) {
         this.chatId = chatId;
         this.messageId = messageId;
         this.messageData = messageData;
@@ -57,7 +57,7 @@ public class MessageModel {
     /**
      * Constructor for implementation of {@link Command}
      */
-    public MessageModel(String chatId, MessageData messageData, @Nullable Map<String, String> keyboardData) {
+    public MessageModel(Long chatId, MessageData messageData, @Nullable Map<String, String> keyboardData) {
         this.chatId = chatId;
         this.messageData = messageData;
         this.keyboardData = keyboardData;

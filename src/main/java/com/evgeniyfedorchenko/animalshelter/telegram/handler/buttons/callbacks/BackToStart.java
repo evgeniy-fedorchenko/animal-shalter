@@ -16,7 +16,7 @@ public class BackToStart implements Callback {
 
 
     @Override
-    public EditMessageText apply(String chatId, Integer messageId) {
+    public EditMessageText apply(Long chatId, Integer messageId) {
 
         MessageUtils messageUtils = new MessageUtils();
         MessageModel messageModel = new MessageModel(chatId, messageId, START, null);

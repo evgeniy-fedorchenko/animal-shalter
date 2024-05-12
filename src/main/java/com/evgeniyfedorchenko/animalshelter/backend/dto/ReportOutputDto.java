@@ -24,8 +24,4 @@ public class ReportOutputDto {
     private long animalId;
     private String animalName;
 
-    @Override
-    public String toString() {
-        return "ReportDto{}";
-    }
 }

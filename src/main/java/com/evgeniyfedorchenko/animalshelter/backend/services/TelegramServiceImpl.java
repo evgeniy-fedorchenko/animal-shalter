@@ -13,8 +13,8 @@ public class TelegramServiceImpl implements TelegramService {
     private TelegramBot telegramBot;
 
     @Override
-    public boolean sendMessage(String chatId, String message) throws TelegramApiException {
-        SendMessage sendMessage = new SendMessage(chatId, message);
+    public boolean sendMessage(long chatId, String message) throws TelegramApiException {
+        SendMessage sendMessage = new SendMessage(String.valueOf(chatId), message);
         telegramBot.execute(sendMessage);
         return true;
     }

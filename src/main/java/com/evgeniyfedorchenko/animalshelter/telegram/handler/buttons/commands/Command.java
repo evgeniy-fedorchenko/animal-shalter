@@ -18,5 +18,5 @@ public interface Command {
      *
      * @see MessageUtils#applyCommand(MessageModel)
      */
-    SendMessage apply(String chatId);
+    SendMessage apply(Long chatId);
 }

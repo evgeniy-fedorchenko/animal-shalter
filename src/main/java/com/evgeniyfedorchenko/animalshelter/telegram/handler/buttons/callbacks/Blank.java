@@ -13,7 +13,7 @@ public class Blank implements Callback {
     private final MessageUtils messageUtils = new MessageUtils();
 
     @Override
-    public EditMessageText apply(String chatId, Integer messageId) {
+    public EditMessageText apply(Long chatId, Integer messageId) {
         return messageUtils.applyCallback(new MessageModel(chatId, messageId, BLANK, null));
     }
 }
