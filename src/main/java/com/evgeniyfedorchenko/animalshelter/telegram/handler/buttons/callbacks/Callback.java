@@ -21,6 +21,6 @@ public interface Callback {
      *
      * @see MessageUtils#applyCallback(MessageModel)
      */
-    EditMessageText apply(String chatId, Integer messageId);
+    EditMessageText apply(Long chatId, Integer messageId);
 
 }

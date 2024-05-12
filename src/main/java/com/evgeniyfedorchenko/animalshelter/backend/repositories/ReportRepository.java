@@ -13,13 +13,11 @@ import java.util.List;
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
-    @Query("SELECT report FROM Report report WHERE report.isViewed = false ORDER BY report.sendingAt ASC")
+    @Query("SELECT report FROM Report report WHERE report.isVerified = false ORDER BY report.sendingAt ASC")
     List<Report> findOldestUnviewedReports(Pageable pageable);
 
-
     @Modifying
-    @Query("UPDATE Report r SET r.isViewed = true WHERE r.id IN (:ids)")
+    @Query("UPDATE Report r SET r.isVerified = true WHERE r.id IN (:ids)")
     void updateReportsViewedStatus(@Param("ids") List<Long> ids);
-
 
 }

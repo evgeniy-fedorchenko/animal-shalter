@@ -13,7 +13,7 @@ import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.Mess
 public class Volunteer implements Command {
 
     @Override
-    public SendMessage apply(String chatId) {
+    public SendMessage apply(Long chatId) {
 
         new Thread(this::callVolunteer).start();
 

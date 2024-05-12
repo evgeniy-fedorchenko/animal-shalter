@@ -50,7 +50,7 @@ public class Report {
     private Instant sendingAt;
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    private boolean isViewed;   // todo Сменить название на isVerified
+    private boolean isVerified;   //
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean isAccepted;
@@ -70,7 +70,7 @@ public class Report {
                         changeBehavior != null ? changeBehavior : "no changeBehavior",
                         photoData,   // при помощи '%b' выводим false если поле равно null и true в противном случае
                         DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss").withZone(ZoneId.systemDefault()).format(sendingAt),
-                        isViewed,
+                        isVerified,
                         isAccepted,
                         adopter
                 );

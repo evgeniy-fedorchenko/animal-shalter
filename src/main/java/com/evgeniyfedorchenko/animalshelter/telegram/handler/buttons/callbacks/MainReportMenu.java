@@ -16,7 +16,7 @@ public class MainReportMenu implements Callback {
 
 
     @Override
-    public EditMessageText apply(String chatId, Integer messageId) {
+    public EditMessageText apply(Long chatId, Integer messageId) {
 
         Map<String, String> keyboardData = new LinkedHashMap<>();
 

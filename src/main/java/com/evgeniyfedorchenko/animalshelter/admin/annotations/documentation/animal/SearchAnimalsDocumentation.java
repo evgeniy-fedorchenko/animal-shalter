@@ -25,13 +25,13 @@ import java.lang.annotation.Target;
                                 schema = @Schema(implementation = AnimalOutputDto[].class),
                                 examples = {
                                         @ExampleObject(
-                                                name = "Collection of adopters",
+                                                name = "Array of adopters",
                                                 description = "Example of returned object",
                                                 value = "[{\"id\":1,\"name\":\"Fluffy\",\"isAdult\":true,\"adopterId\":123,\"adopterChatId\":456,\"adopterName\":\"John Doe\"}," +
                                                         "{\"id\":2,\"name\":\"Whiskers\",\"isAdult\":false,\"adopterId\":789,\"adopterChatId\":321,\"adopterName\":\"Jane Smith\"}]"
                                         ),
                                         @ExampleObject(
-                                                name = "Empty collection",
+                                                name = "Empty array",
                                                 description = "Returned if search with such parameters didn't turn up anything",
                                                 value = "{}"
                                         )

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.util.Map;
@@ -37,7 +38,7 @@ public class MainHandler {
 
         return command == null
                 ? new SendMessage(message.getChatId().toString(), "Unknown command: " + commandText)
-                : command.apply(String.valueOf(message.getChatId()));
+                : command.apply(message.getChatId());
     }
 
     /**
@@ -50,10 +51,28 @@ public class MainHandler {
     public EditMessageText handleCallbacks(CallbackQuery callbackQuery) {
 
         Map<String, Callback> callbacksMap = applicationContext.getBeansOfType(Callback.class);
-        String chatId = String.valueOf(callbackQuery.getMessage().getChatId());
-        Integer messageId = callbackQuery.getMessage().getMessageId();
 
-//        todo Добавить проверку на null
-        return callbacksMap.get(callbackQuery.getData()).apply(chatId, messageId);
+        Callback callback = callbacksMap.get(callbackQuery.getData());
+        Long chatId = callbackQuery.getMessage().getChatId();
+
+        if (callback != null) {
+            Integer messageId = callbackQuery.getMessage().getMessageId();
+            return callback.apply(chatId, messageId);
+
+        } else {
+
+            /* Вообще неизвестных колбеков быть не должно, потому что мы сами их
+               отправляем и сами ловим. Но на всякий случай, если что, лучше дать
+               юзеру обратную связь - отправить ему новое сообщение, мол ошибка */
+            Chat chat = new Chat();
+            chat.setId(chatId);
+
+            Message message = new Message();
+            message.setChat(chat);
+            message.setText("Unknown callback: " + callbackQuery.getData());
+
+            this.handleCommands(message);
+            return null;
+        }
     }
 }

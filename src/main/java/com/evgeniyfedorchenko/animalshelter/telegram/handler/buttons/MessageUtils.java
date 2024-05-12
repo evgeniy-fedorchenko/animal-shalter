@@ -49,7 +49,7 @@ public class MessageUtils {
     public SendMessage applyCommand(MessageModel messageModel) {
 
         SendMessage sendMessage = new SendMessage(
-                messageModel.getChatId(),
+                String.valueOf(messageModel.getChatId()),
                 messageModel.getMessageData().getAnswer()
         );
 

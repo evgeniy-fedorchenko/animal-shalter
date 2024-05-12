@@ -2,6 +2,8 @@ package com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.rep
 
 import com.evgeniyfedorchenko.animalshelter.backend.dto.ReportOutputDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.links.Link;
+import io.swagger.v3.oas.annotations.links.LinkParameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -26,9 +28,15 @@ import java.lang.annotation.Target;
                                 examples = @ExampleObject(
                                         name = "Report",
                                         description = "Example of returned object",
-                                        // todo Вставить нормальный урл в пример
-                                        value = "{\"id\":1,\"diet\":\"Omnivore\",\"health\":\"Healthy\",\"changeBehavior\":\"Playful\",\"photoUrl\":\"https://example.com/animal-photo.jpg\",\"sendingAt\":\"2023-04-18T12:34:56Z\",\"adopterId\":123,\"adopterName\":\"John Doe\",\"animalId\":456,\"animalName\":\"Fluffy\"}"
+                                        value = "{\"id\":1,\"diet\":\"Omnivore\",\"health\":\"Healthy\",\"changeBehavior\":\"Playful\",\"photoUrl\":\"http://localhost:8080/reports/1/photo\",\"sendingAt\":\"2023-04-18T12:34:56Z\",\"adopterId\":123,\"adopterName\":\"John Doe\",\"animalId\":456,\"animalName\":\"Fluffy\"}"
                                 )
+                        ),
+                        links = @Link(
+                                name = "View the photo of report",
+                                operationRef = "http://localhost:8080/reports/{id}/photo",
+                                parameters = @LinkParameter(
+                                        name = "id",
+                                        expression = "Report's id of target report")
                         )
                 ),
                 @ApiResponse(
@@ -38,5 +46,5 @@ import java.lang.annotation.Target;
                 )
         }
 )
-public @interface GetReportDocumentation {
+public @interface GetReportByIdDocumentation {
 }

@@ -39,7 +39,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public Optional<ReportOutputDto> getReport(long id) {
+    public Optional<ReportOutputDto> getReportById(long id) {
         return reportRepository.findById(id)
                 .map(reportMapper::toDto);
     }
@@ -55,7 +55,7 @@ public class ReportServiceImpl implements ReportService {
         String message = "Bad report";  // todo Заменить на подходящий текст
 
         try {
-            return telegramService.sendMessage(String.valueOf(adopterChatId), message);    //  todo Заменить тип на long
+            return telegramService.sendMessage(adopterChatId, message);
         } catch (TelegramApiException e) {
             log.error("Filed to send message to adopter about his bad report. Cause: {}", e.getMessage());
             return false;
@@ -65,5 +65,10 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public void deleteReports(List<Long> ids) {
         reportRepository.deleteAllById(ids);
+    }
+
+    @Override
+    public Optional<Report> getPhoto(Long id) {
+        return reportRepository.findById(id);
     }
 }

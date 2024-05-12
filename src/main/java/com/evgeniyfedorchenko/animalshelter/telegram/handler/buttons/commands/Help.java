@@ -14,7 +14,7 @@ import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.Mess
 public class Help implements Command {
 
     @Override
-    public SendMessage apply(String chatId) {
+    public SendMessage apply(Long chatId) {
 
         Map<String, String> keyboardData = new LinkedHashMap<>();
 
