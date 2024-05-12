@@ -1,7 +1,7 @@
 package com.evgeniyfedorchenko.animalshelter.admin.controllers;
 
 import com.evgeniyfedorchenko.animalshelter.admin.annotations.IsFieldOf;
-import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.*;
+import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.animal.*;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AnimalInputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AnimalOutputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Animal;

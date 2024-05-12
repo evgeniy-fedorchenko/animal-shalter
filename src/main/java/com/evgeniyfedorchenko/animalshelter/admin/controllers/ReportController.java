@@ -1,8 +1,8 @@
 package com.evgeniyfedorchenko.animalshelter.admin.controllers;
 
-import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.GetReportDocumentation;
-import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.GetUnverifiedReportsDocumentation;
-import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.SendMessageAboutBadReportDocumentation;
+import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.report.GetReportDocumentation;
+import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.report.GetUnverifiedReportsDocumentation;
+import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.report.SendMessageAboutBadReportDocumentation;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.ReportOutputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.services.ReportService;
 import io.swagger.v3.oas.annotations.Parameter;
