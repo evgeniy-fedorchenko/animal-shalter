@@ -6,18 +6,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
-    @Query("SELECT report FROM Report report WHERE report.isVerified = false ORDER BY report.sendingAt ASC")
+    @Query("SELECT report FROM Report report WHERE report.verified = false ORDER BY report.sendingAt ASC")
     List<Report> findOldestUnviewedReports(Pageable pageable);
 
     @Modifying
-    @Query("UPDATE Report r SET r.isVerified = true WHERE r.id IN (:ids)")
+    @Query("UPDATE Report r SET r.verified = true WHERE r.id IN (:ids)")
     void updateReportsViewedStatus(@Param("ids") List<Long> ids);
 
 }
