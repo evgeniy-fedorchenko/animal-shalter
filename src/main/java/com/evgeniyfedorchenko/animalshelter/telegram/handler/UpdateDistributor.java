@@ -1,7 +1,7 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.handler;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -10,20 +10,24 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.Serializable;
 
+/**
+ * The class contains the logic of parsing a raw object {@code Update}
+ * and distributing it by methods of {@link MainHandler}
+ */
+@Slf4j
+@AllArgsConstructor
 @Component
 public class UpdateDistributor {
 
     private final MainHandler mainHandler;
 
-    private final Logger logger = LoggerFactory.getLogger(UpdateDistributor.class);
 
-    public UpdateDistributor(MainHandler mainHandler) {
-        this.mainHandler = mainHandler;
-    }
-
-/*    Я решил по получению колбека не отправлять новое сообщение, а редактировать старое,
-      чтоб не загромождать чат + @BotFather именно так делает. Там тип данных EditMessageText,
-      а не SendMessage. Поэтому возвращаем ближайшего общего родителя */
+    /**
+     * The method contains all the logic of checking, parsing and distributing
+     * of the object non-validated {@code Update} that came from the telegram bot
+     * @param update An object directly sent here from a telegram bot
+     * @return A generalized type object ready to be sent
+     */
     public BotApiMethod<? extends Serializable> distribute(Update update) {
 
         if (update.hasMessage()) {
