@@ -4,16 +4,16 @@ import com.evgeniyfedorchenko.animalshelter.admin.controllers.SortOrder;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AdopterInputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AdopterOutputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Adopter;
-import com.evgeniyfedorchenko.animalshelter.backend.entities.Report;
+import com.evgeniyfedorchenko.animalshelter.backend.entities.Animal;
 import com.evgeniyfedorchenko.animalshelter.backend.mappers.AdopterMapper;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.AdopterRepository;
+import com.evgeniyfedorchenko.animalshelter.backend.repositories.AdopterRepositoryHelper;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.AnimalRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -25,6 +25,7 @@ public class AdopterServiceImpl implements AdopterService {
     private final AnimalRepository animalRepository;
     private final ReportService reportService;
     private final AdopterMapper adopterMapper;
+    private final AdopterRepositoryHelper adopterRepositoryHelper;
     private final int initialAssignedReportsQuantity = 30;
 
     @Override
@@ -35,14 +36,13 @@ public class AdopterServiceImpl implements AdopterService {
         adopter.setChatId(adopterInputDto.getChatId());
         adopter.setName(adopterInputDto.getName());
         adopter.setAssignedReportsQuantity(initialAssignedReportsQuantity);
+        adopter.setPhoneNumber(validatePhoneNumber(adopterInputDto.getPhoneNumber()));
 
-        try {
-            adopter.setPhoneNumber(validatePhoneNumber(adopterInputDto.getPhoneNumber()));
-            adopter.setAnimal(animalRepository.findById(adopterInputDto.getAnimalId()).orElseThrow());
-        } catch (IllegalArgumentException | NoSuchElementException ex) {
-            log.error(ex.getMessage());
+        Optional<Animal> animalOpt = animalRepository.findById(adopterInputDto.getAnimalId());
+        if (animalOpt.isEmpty()) {
             return Optional.empty();
         }
+        adopter.setAnimal(animalOpt.get());
 
         Adopter savedAdopter = adopterRepository.save(adopter);
         log.info("Saved adopter: {}", savedAdopter);
@@ -62,6 +62,8 @@ public class AdopterServiceImpl implements AdopterService {
                 ? adopterRepository.searchAdoptersAscSort(sortParam, pageSize, offset)
                 : adopterRepository.searchAdoptersDescSort(sortParam, pageSize, offset);
 
+        List<Adopter> adopters1 = adopterRepositoryHelper.searchAdopters(sortParam, sortOrder, pageSize, offset);
+
         log.debug("Calling searchAdopters with params: sortParam={}, sortOrder={}, pageNumber={}, pageSize={} returned student's ids: {}",
                 sortParam, sortOrder, pageNumber, pageSize, adopters.stream().map(Adopter::getId).toList());
 
@@ -75,28 +77,20 @@ public class AdopterServiceImpl implements AdopterService {
             log.warn("No adopter found with id: {}", id);
             return false;
         }
-
-        Adopter adopter = adopterOpt.get();
-        if (adopter.hasReports()) {
-            List<Long> ids = adopter.getReports().stream().map(Report::getId).toList();
-            reportService.deleteReports(ids);
-        }
         adopterRepository.deleteById(id);
         return true;
     }
 
     private String validatePhoneNumber(String phoneNumber) {
 
+//        Regexp: Заменяем на пустую строку все пробельные символы, круглые скобки и знак минус
         String replaced = phoneNumber.replaceAll("[\\s()\\-]+", "");
 
-        if (replaced.startsWith("+79")) {
-            return replaced.replaceFirst("^..", "7");
-
-        } else if (replaced.startsWith("89") || replaced.startsWith("79")) {
-            return replaced.replaceFirst("^.", "7");
-
-        } else {
-            throw new IllegalArgumentException("Invalid phone number: " + phoneNumber);
-        }
+          /* Возможны только три случая - "+79...", "79..." и "89...", все остальное не пройдет
+          валидацию в контроллере. В любом случае приводим номер к виду "79..." */
+        return replaced.startsWith("+79")
+                ? replaced.replaceFirst("^..", "7")
+                : replaced.replaceFirst("^.", "7");
     }
 }
+

@@ -18,11 +18,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Tag(name = "Reports", description = "Controller for work with reports: receiving, analyzing, and sending warnings to adopters about the low-quality of reports")
 @Validated
 @RestController
-@RequestMapping(path = "/reports")
+@RequestMapping(path = ReportController.BASE_REPORT_URI)
 @AllArgsConstructor
 public class ReportController {
 
@@ -32,7 +33,7 @@ public class ReportController {
 
     @GetUnverifiedReportsDocumentation
     @GetMapping
-    public List<ReportOutputDto> getUnverifiedReports(
+    public CompletableFuture<List<ReportOutputDto>> getUnverifiedReports(
             @Positive(message = "Limit of reports must be positive")
             @Parameter(description = "The requested number of reports to verify them")
             @RequestParam(required = false, defaultValue = "10") int limit) {

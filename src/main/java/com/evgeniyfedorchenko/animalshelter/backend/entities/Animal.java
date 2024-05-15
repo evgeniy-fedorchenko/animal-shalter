@@ -29,7 +29,7 @@ public class Animal {
     private String name;
 
     @NotNull(message = "Animal's 'isAdult' should not be null")
-    private boolean isAdult;
+    private boolean adult;
 
     @Nullable
     @OneToOne(mappedBy = "animal")
@@ -44,7 +44,7 @@ public class Animal {
         return "Animal{id=%d, name=%s, isAdult=%s, adopter=%s}".formatted(
                 id,
                 name,
-                isAdult,
+                adult,
                 this.hasAdopter() ? adopter : "no adopter"
         );
     }

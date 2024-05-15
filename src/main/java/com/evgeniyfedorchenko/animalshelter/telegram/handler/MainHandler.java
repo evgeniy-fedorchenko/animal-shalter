@@ -2,13 +2,11 @@ package com.evgeniyfedorchenko.animalshelter.telegram.handler;
 
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.Callback;
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.commands.Command;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.util.Map;
@@ -20,8 +18,11 @@ import java.util.Map;
 @Component
 public class MainHandler {
 
-    @Autowired
-    private ApplicationContext applicationContext;
+    private final ApplicationContext applicationContext;
+
+    public MainHandler(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
 
     /**
      * A method for processing <b>commands</b> sent from a Telegram bot. The method
@@ -60,19 +61,17 @@ public class MainHandler {
             return callback.apply(chatId, messageId);
 
         } else {
+            String text = """
+                    Я извиняюсь, но кажется эта команда устарела \uD83E\uDD72
+                    Как насчет того, чтобы просто начать сначала?)
+                    👉 /start 👈""";
 
-            /* Вообще неизвестных колбеков быть не должно, потому что мы сами их
-               отправляем и сами ловим. Но на всякий случай, если что, лучше дать
-               юзеру обратную связь - отправить ему новое сообщение, мол ошибка */
-            Chat chat = new Chat();
-            chat.setId(chatId);
+            EditMessageText editMessageText = new EditMessageText(text);
+            editMessageText.setChatId(chatId);
+            editMessageText.setMessageId(callbackQuery.getMessage().getMessageId());
+            return editMessageText;
 
-            Message message = new Message();
-            message.setChat(chat);
-            message.setText("Unknown callback: " + callbackQuery.getData());
-
-            this.handleCommands(message);
-            return null;
+//            todo протестить
         }
     }
 }

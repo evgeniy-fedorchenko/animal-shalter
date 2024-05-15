@@ -7,11 +7,12 @@ import com.evgeniyfedorchenko.animalshelter.backend.repositories.ReportRepositor
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -22,20 +23,19 @@ public class ReportServiceImpl implements ReportService {
     private final ReportRepository reportRepository;
     private final ReportMapper reportMapper;
 
+    @Async
     @Override
-    public List<ReportOutputDto> getUnverifiedReports(int limit) {
+    public CompletableFuture<List<ReportOutputDto>> getUnverifiedReports(int limit) {
 
-        List<ReportOutputDto> list =reportRepository.findOldestUnviewedReports(PageRequest.of(0, limit))
-                .stream()
+        CompletableFuture<List<ReportOutputDto>> futureList = CompletableFuture.supplyAsync(() -> 
+                reportRepository.findOldestUnviewedReports(PageRequest.of(0, limit)).stream()
                 .map(reportMapper::toDto)
-                .toList();
-
-        new Thread(() -> {
+                .toList());
+        futureList.thenAccept(list -> {
             List<Long> idsForUpdate = list.stream().map(ReportOutputDto::getId).toList();
             reportRepository.updateReportsViewedStatus(idsForUpdate);
-        }).start();
-
-        return list;
+        });
+        return futureList;
     }
 
     @Override
@@ -54,17 +54,7 @@ public class ReportServiceImpl implements ReportService {
         long adopterChatId = reportOpt.get().getAdopter().getChatId();
         String message = "Bad report";  // todo Заменить на подходящий текст
 
-        try {
-            return telegramService.sendMessage(adopterChatId, message);
-        } catch (TelegramApiException e) {
-            log.error("Filed to send message to adopter about his bad report. Cause: {}", e.getMessage());
-            return false;
-        }
-    }
-
-    @Override
-    public void deleteReports(List<Long> ids) {
-        reportRepository.deleteAllById(ids);
+        return telegramService.sendMessage(adopterChatId, message);
     }
 
     @Override

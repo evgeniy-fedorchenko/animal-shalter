@@ -17,9 +17,7 @@ public class IsFieldValidator implements ConstraintValidator<IsFieldOf, String> 
     @Override
     public boolean isValid(String validatedValue, ConstraintValidatorContext context) {
 
-        log.info("I'm inside!");
-
-        if (validatedValue == null || value == null) {
+        if (validatedValue == null) {
             throw new IllegalArgumentException("Validated parameter or value is null");
         }
         try {

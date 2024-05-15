@@ -46,7 +46,7 @@ public class Adopter {
     private int assignedReportsQuantity;
 
     @Nullable
-    @OneToMany(mappedBy = "adopter")
+    @OneToMany(mappedBy = "adopter", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Report> reports;
 
     @Nullable
