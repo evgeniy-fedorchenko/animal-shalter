@@ -21,7 +21,13 @@ public class SecurityContacts implements Callback {
         keyboardData.put("Назад", MAIN_ABOUT_SHELTER.getCallbackData());
 
         MessageUtils messageUtils = new MessageUtils();
-        MessageModel messageModel = new MessageModel(chatId, messageId, SECURITY_CONTACTS, keyboardData);
+//        MessageModel messageModel = new MessageModel(chatId, messageId, SECURITY_CONTACTS, keyboardData);
+        MessageModel messageModel = MessageModel.builder()
+                .chatId(chatId)
+                .messageId(messageId)
+                .messageData(SECURITY_CONTACTS)
+                .keyboardData(keyboardData)
+                .build();
 
         return messageUtils.applyCallback(messageModel);
     }

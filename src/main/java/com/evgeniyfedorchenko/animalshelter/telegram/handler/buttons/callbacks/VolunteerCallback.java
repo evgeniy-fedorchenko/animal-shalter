@@ -14,7 +14,12 @@ public class VolunteerCallback implements Callback {
     public EditMessageText apply(Long chatId, Integer messageId) {
 
         MessageUtils messageUtils = new MessageUtils();
-        MessageModel messageModel = new MessageModel(chatId, messageId, VOLUNTEER, null);
+//        MessageModel messageModel = new MessageModel(chatId, messageId, VOLUNTEER, null);
+        MessageModel messageModel = MessageModel.builder()
+                .chatId(chatId)
+                .messageId(messageId)
+                .messageData(VOLUNTEER)
+                .build();
 
         return messageUtils.applyCallback(messageModel);
     }

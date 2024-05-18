@@ -25,7 +25,13 @@ public class MainReportMenu implements Callback {
         keyboardData.put("Назад",                    START.getCallbackData());
 
         MessageUtils messageUtils = new MessageUtils();
-        MessageModel messageModel = new MessageModel(chatId, messageId, MAIN_REPORT_MENU, keyboardData);
+//        MessageModel messageModel = new MessageModel(chatId, messageId, MAIN_REPORT_MENU, keyboardData);
+        MessageModel messageModel = MessageModel.builder()
+                .chatId(chatId)
+                .messageId(messageId)
+                .messageData(MAIN_REPORT_MENU)
+                .keyboardData(keyboardData)
+                .build();
 
         return messageUtils.applyCallback(messageModel);
     }

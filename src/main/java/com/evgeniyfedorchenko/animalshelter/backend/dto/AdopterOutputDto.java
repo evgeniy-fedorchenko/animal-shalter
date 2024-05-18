@@ -1,11 +1,11 @@
 package com.evgeniyfedorchenko.animalshelter.backend.dto;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
+@ToString
+@EqualsAndHashCode
 @NoArgsConstructor
 public class AdopterOutputDto {
 
@@ -14,6 +14,7 @@ public class AdopterOutputDto {
     private String name;
     private String phoneNumber;
     private int assignedReportsQuantity;
+    private int reportsQuantity;
     private long animalId;
     private String animalName;
 

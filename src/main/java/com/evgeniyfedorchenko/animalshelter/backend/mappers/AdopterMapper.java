@@ -16,6 +16,7 @@ public class AdopterMapper {
         outputDto.setChatId(adopter.getChatId());
         outputDto.setName(adopter.getName());
         outputDto.setPhoneNumber(adopter.getPhoneNumber());
+        outputDto.setReportsQuantity(adopter.hasReports() ? adopter.getReports().size() : 0);
         outputDto.setAssignedReportsQuantity(adopter.getAssignedReportsQuantity());
 
         Optional.ofNullable(adopter.getAnimal())
