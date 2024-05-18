@@ -19,7 +19,12 @@ public class BackToStart implements Callback {
     public EditMessageText apply(Long chatId, Integer messageId) {
 
         MessageUtils messageUtils = new MessageUtils();
-        MessageModel messageModel = new MessageModel(chatId, messageId, START, null);
+//        MessageModel messageModel = new MessageModel(chatId, messageId, START, null);
+        MessageModel messageModel = MessageModel.builder()
+                .chatId(chatId)
+                .messageId(messageId)
+                .messageData(START)
+                .build();
         EditMessageText editMessage = messageUtils.applyCallback(messageModel);
 
         /* К сожалению из объекта SendMessage нельзя вытащить клавиатуру в виде коллекции кнопок (или мапы), можно

@@ -18,7 +18,12 @@ public class Volunteer implements Command {
         new Thread(this::callVolunteer).start();
 
         MessageUtils messageUtils = new MessageUtils();
-        MessageModel messageModel = new MessageModel(chatId, VOLUNTEER, null);
+//        MessageModel messageModel = new MessageModel(chatId, VOLUNTEER, null);
+        MessageModel messageModel = MessageModel.builder()
+                .chatId(chatId)
+                .messageData(VOLUNTEER)
+                .build();
+
         return messageUtils.applyCommand(messageModel);
     }
 

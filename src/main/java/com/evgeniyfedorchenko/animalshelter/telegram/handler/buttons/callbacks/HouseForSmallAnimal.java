@@ -21,7 +21,13 @@ public class HouseForSmallAnimal implements Callback {
         keyboardData.put("Назад", MAIN_HOW_TAKE_ANIMAL.getCallbackData());
 
         MessageUtils messageUtils = new MessageUtils();
-        MessageModel messageModel = new MessageModel(chatId, messageId, HOUSE_FOR_SMALL_ANIMAL, keyboardData);
+//        MessageModel messageModel = new MessageModel(chatId, messageId, HOUSE_FOR_SMALL_ANIMAL, keyboardData);
+        MessageModel messageModel = MessageModel.builder()
+                .chatId(chatId)
+                .messageId(messageId)
+                .messageData(HOUSE_FOR_SMALL_ANIMAL)
+                .keyboardData(keyboardData)
+                .build();
 
         return messageUtils.applyCallback(messageModel);
     }

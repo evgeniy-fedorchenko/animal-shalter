@@ -32,9 +32,6 @@ import java.lang.annotation.Target;
                                 )
                         }
                 )
-                /* todo Возможно сюда стоит добавить описание Internal Server Error(500) -
-                        если Телеграм не смог отправить наше сообщение по своим каким-то внутренним причинам */
-
         }
 )
 public @interface SendMessageAboutBadReportDocumentation {

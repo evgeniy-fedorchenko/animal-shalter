@@ -23,7 +23,6 @@ public class AdopterServiceImpl implements AdopterService {
 
     private final AdopterRepository adopterRepository;
     private final AnimalRepository animalRepository;
-    private final ReportService reportService;
     private final AdopterMapper adopterMapper;
     private final AdopterRepositoryHelper adopterRepositoryHelper;
     private final int initialAssignedReportsQuantity = 30;
@@ -38,14 +37,16 @@ public class AdopterServiceImpl implements AdopterService {
         adopter.setAssignedReportsQuantity(initialAssignedReportsQuantity);
         adopter.setPhoneNumber(validatePhoneNumber(adopterInputDto.getPhoneNumber()));
 
-        Optional<Animal> animalOpt = animalRepository.findById(adopterInputDto.getAnimalId());
-        if (animalOpt.isEmpty()) {
-            return Optional.empty();
+        Optional<Animal> animalOpt = Optional.empty();
+        if (adopterInputDto.getAnimalId() != null) {
+            animalOpt = animalRepository.findById(adopterInputDto.getAnimalId());
+            animalOpt.ifPresent(adopter::setAnimal);
         }
-        adopter.setAnimal(animalOpt.get());
 
         Adopter savedAdopter = adopterRepository.save(adopter);
         log.info("Saved adopter: {}", savedAdopter);
+
+        animalOpt.ifPresent(animal -> animal.setAdopter(adopter));
         return Optional.ofNullable(adopterMapper.toOutputDto(savedAdopter));
     }
 
@@ -58,11 +59,7 @@ public class AdopterServiceImpl implements AdopterService {
     public List<AdopterOutputDto> searchAdopters(String sortParam, SortOrder sortOrder, int pageSize, int pageNumber) {
 
         int offset = (pageNumber - 1) * pageSize;
-        List<Adopter> adopters = sortOrder == SortOrder.ASC
-                ? adopterRepository.searchAdoptersAscSort(sortParam, pageSize, offset)
-                : adopterRepository.searchAdoptersDescSort(sortParam, pageSize, offset);
-
-        List<Adopter> adopters1 = adopterRepositoryHelper.searchAdopters(sortParam, sortOrder, pageSize, offset);
+        List<Adopter> adopters = adopterRepositoryHelper.searchAdopters(sortParam, sortOrder, pageSize, offset);
 
         log.debug("Calling searchAdopters with params: sortParam={}, sortOrder={}, pageNumber={}, pageSize={} returned student's ids: {}",
                 sortParam, sortOrder, pageNumber, pageSize, adopters.stream().map(Adopter::getId).toList());

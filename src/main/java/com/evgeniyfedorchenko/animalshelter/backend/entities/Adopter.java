@@ -3,10 +3,7 @@ package com.evgeniyfedorchenko.animalshelter.backend.entities;
 
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,14 +36,15 @@ public class Adopter {
     @Size(max = 50)
     private String name;
 
+    @NotNull
     @Pattern(regexp = "^(\\+79|79|89)\\d{9}", message = "Adopter's phone number is invalid. Must be matches ^(\\+79|79|89)\\d{9}")
     private String phoneNumber;
 
-    @Size(min = 30, message = "Adopter's quantity of assigned reports must be greater than 30")
+    @Min(value = 30, message = "Adopter's quantity of assigned reports must be greater than 30")
     private int assignedReportsQuantity;
 
     @Nullable
-    @OneToMany(mappedBy = "adopter", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "adopter", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Report> reports;
 
     @Nullable

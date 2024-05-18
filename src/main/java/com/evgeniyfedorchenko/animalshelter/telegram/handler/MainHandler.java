@@ -70,8 +70,6 @@ public class MainHandler {
             editMessageText.setChatId(chatId);
             editMessageText.setMessageId(callbackQuery.getMessage().getMessageId());
             return editMessageText;
-
-//            todo протестить
         }
     }
 }

@@ -20,7 +20,13 @@ public class AdoptionDocs implements Callback {
         keyboardData.put("Назад", MAIN_HOW_TAKE_ANIMAL.getCallbackData());
 
         MessageUtils messageUtils = new MessageUtils();
-        MessageModel messageModel = new MessageModel(chatId, messageId, ADOPTION_DOCS, keyboardData);
+//        MessageModel messageModel = new MessageModel(chatId, messageId, ADOPTION_DOCS, keyboardData);
+        MessageModel messageModel = MessageModel.builder()
+                .chatId(chatId)
+                .messageId(messageId)
+                .messageData(ADOPTION_DOCS)
+                .keyboardData(keyboardData)
+                .build();
 
         return messageUtils.applyCallback(messageModel);
     }

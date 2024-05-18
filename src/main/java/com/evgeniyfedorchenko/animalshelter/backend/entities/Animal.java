@@ -41,11 +41,11 @@ public class Animal {
 
     @Override
     public String toString() {
-        return "Animal{id=%d, name=%s, isAdult=%s, adopter=%s}".formatted(
+        return "Animal{id=%d, name=%s, isAdult=%s, adopterId=%s}".formatted(
                 id,
                 name,
                 adult,
-                this.hasAdopter() ? adopter : "no adopter"
+                this.hasAdopter() ? adopter.getId() : "no adopter"
         );
     }
 }
