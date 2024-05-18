@@ -55,7 +55,6 @@ public class AnimalServiceImpl implements AnimalService {
         Adopter adopter = adopterOpt.get();
         Animal animal = animalOpt.get();
 
-//        todo Придумать как вместо false возвращать причину, почему не получилось связать объекты
         if (adopter.hasAnimal() || animal.hasAdopter()) {
             return false;
         }

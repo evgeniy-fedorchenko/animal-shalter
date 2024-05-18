@@ -21,8 +21,13 @@ public class DatingRules implements Callback {
         keyboardData.put("Назад", MAIN_HOW_TAKE_ANIMAL.getCallbackData());
 
         MessageUtils messageUtils = new MessageUtils();
-        MessageModel messageModel = new MessageModel(chatId, messageId, DATING_RULES, keyboardData);
-
+//        MessageModel messageModel = new MessageModel(chatId, messageId, DATING_RULES, keyboardData);
+        MessageModel messageModel = MessageModel.builder()
+                .chatId(chatId)
+                .messageId(messageId)
+                .messageData(DATING_RULES)
+                .keyboardData(keyboardData)
+                .build();
         return messageUtils.applyCallback(messageModel);
     }
 }

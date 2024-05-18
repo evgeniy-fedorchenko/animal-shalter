@@ -1,9 +1,8 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons;
 
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.MainHandler;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.Callback;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.commands.Command;
 import jakarta.annotation.Nullable;
+import lombok.Builder;
 import lombok.Getter;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -18,6 +17,7 @@ import java.util.Map;
  * use {@link MessageUtils#applyCommand(MessageModel)} or {@link MessageUtils#applyCallback(MessageModel)}
  */
 @Getter
+@Builder
 public class MessageModel {
 
     /**
@@ -44,25 +44,4 @@ public class MessageModel {
     @Nullable
     public final Map<String, String> keyboardData;
 
-    /**
-     * Constructor for implementation of {@link Callback}
-     */
-    public MessageModel(Long chatId, Integer messageId, MessageData messageData, @Nullable Map<String, String> keyboardData) {
-        this.chatId = chatId;
-        this.messageId = messageId;
-        this.messageData = messageData;
-        this.keyboardData = keyboardData;
-    }
-
-    /**
-     * Constructor for implementation of {@link Command}
-     */
-    public MessageModel(Long chatId, MessageData messageData, @Nullable Map<String, String> keyboardData) {
-        this.chatId = chatId;
-        this.messageData = messageData;
-        this.keyboardData = keyboardData;
-
-        this.messageId = null;   // Не используется
-//        todo Возможно стоит переделать на билдер, тк и keyboardData в паре кнопок не нужна
-    }
 }

@@ -14,6 +14,13 @@ public class Blank implements Callback {
 
     @Override
     public EditMessageText apply(Long chatId, Integer messageId) {
-        return messageUtils.applyCallback(new MessageModel(chatId, messageId, BLANK, null));
+
+        MessageModel messageModel = MessageModel.builder()
+                .chatId(chatId)
+                .messageId(messageId)
+                .messageData(BLANK)
+                .build();
+
+        return messageUtils.applyCallback(messageModel);
     }
 }

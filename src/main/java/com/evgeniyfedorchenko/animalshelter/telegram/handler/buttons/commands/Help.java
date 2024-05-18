@@ -22,7 +22,13 @@ public class Help implements Command {
         keyboardData.put("Начать сначала",    START.getCallbackData());
 
         MessageUtils messageUtils = new MessageUtils();
-        MessageModel messageModel = new MessageModel(chatId, HELP, keyboardData);
+//        MessageModel messageModel = new MessageModel(chatId, HELP, keyboardData);
+        MessageModel messageModel = MessageModel.builder()
+                .chatId(chatId)
+                .messageData(HELP)
+                .keyboardData(keyboardData)
+                .build();
+
         return messageUtils.applyCommand(messageModel);
     }
 }
