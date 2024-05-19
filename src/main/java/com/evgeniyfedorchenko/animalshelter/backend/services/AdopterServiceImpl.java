@@ -7,8 +7,8 @@ import com.evgeniyfedorchenko.animalshelter.backend.entities.Adopter;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Animal;
 import com.evgeniyfedorchenko.animalshelter.backend.mappers.AdopterMapper;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.AdopterRepository;
-import com.evgeniyfedorchenko.animalshelter.backend.repositories.AdopterRepositoryHelper;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.AnimalRepository;
+import com.evgeniyfedorchenko.animalshelter.backend.repositories.RepositoryUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,11 +21,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AdopterServiceImpl implements AdopterService {
 
-    private final AdopterRepository adopterRepository;
     private final AnimalRepository animalRepository;
     private final AdopterMapper adopterMapper;
-    private final AdopterRepositoryHelper adopterRepositoryHelper;
+    private final AdopterRepository adopterRepository;
     private final int initialAssignedReportsQuantity = 30;
+    private final RepositoryUtils repositoryUtils;
 
     @Override
     public Optional<AdopterOutputDto> addAdopter(AdopterInputDto adopterInputDto) {
@@ -59,7 +59,7 @@ public class AdopterServiceImpl implements AdopterService {
     public List<AdopterOutputDto> searchAdopters(String sortParam, SortOrder sortOrder, int pageSize, int pageNumber) {
 
         int offset = (pageNumber - 1) * pageSize;
-        List<Adopter> adopters = adopterRepositoryHelper.searchAdopters(sortParam, sortOrder, pageSize, offset);
+        List<Adopter> adopters = (List<Adopter>) repositoryUtils.searchEntities(Adopter.class, sortParam, sortOrder, pageSize, offset);
 
         log.debug("Calling searchAdopters with params: sortParam={}, sortOrder={}, pageNumber={}, pageSize={} returned student's ids: {}",
                 sortParam, sortOrder, pageNumber, pageSize, adopters.stream().map(Adopter::getId).toList());

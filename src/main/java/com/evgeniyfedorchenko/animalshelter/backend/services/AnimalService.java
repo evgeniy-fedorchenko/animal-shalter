@@ -6,6 +6,7 @@ import com.evgeniyfedorchenko.animalshelter.backend.dto.AnimalOutputDto;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public interface AnimalService {
 
@@ -15,7 +16,7 @@ public interface AnimalService {
 
     List<AnimalOutputDto> searchAnimals(String sortParam, SortOrder sortOrder, int pageNumber, int pageSize);
 
-    boolean assignAnimalToAdopter(long adopterId, long animalId);
+    CompletableFuture<Boolean> assignAnimalToAdopter(long adopterId, long animalId);
 
     boolean deleteAnimalById(long id);
 }

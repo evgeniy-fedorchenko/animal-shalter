@@ -8,12 +8,16 @@ import com.evgeniyfedorchenko.animalshelter.backend.entities.Animal;
 import com.evgeniyfedorchenko.animalshelter.backend.mappers.AnimalMapper;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.AdopterRepository;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.AnimalRepository;
+import com.evgeniyfedorchenko.animalshelter.backend.repositories.RepositoryUtils;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -23,6 +27,21 @@ public class AnimalServiceImpl implements AnimalService {
     private final AnimalRepository animalRepository;
     private final AdopterRepository adopterRepository;
     private final AnimalMapper animalMapper;
+    private final RepositoryUtils repositoryUtils;
+
+    @Override
+    public Optional<AnimalOutputDto> addAnimal(AnimalInputDto inputDto) {
+        Animal animal = new Animal();
+
+        animal.setName(inputDto.getName());
+        animal.setAdult(inputDto.isAdult());
+
+//        adopterRepository.findById(inputDto.getAdopterId()).ifPresent(animal::setAdopter);
+
+        Animal savedAnimal = animalRepository.save(animal);
+        log.info("Successfully saved: {}", savedAnimal);
+        return Optional.of(animalMapper.toOutputDto(savedAnimal));
+    }
 
     @Override
     public Optional<AnimalOutputDto> getAnimal(long id) {
@@ -33,9 +52,7 @@ public class AnimalServiceImpl implements AnimalService {
     public List<AnimalOutputDto> searchAnimals(String sortParam, SortOrder sortOrder, int pageNumber, int pageSize) {
 
         int offset = (pageNumber - 1) * pageSize;
-        List<Animal> animals = sortOrder == SortOrder.ASC
-                ? animalRepository.searchAnimalsAscSort(sortParam, pageSize, offset)
-                : animalRepository.searchAnimalsDescSort(sortParam, pageSize, offset);
+        List<Animal> animals = (List<Animal>) repositoryUtils.searchEntities(Animal.class, sortParam, sortOrder, pageSize, offset);
 
         log.debug("Calling searchAdopters with params: sortParam={}, sortOrder={}, pageNumber={}, pageSize={} returned student's ids: {}",
                 sortParam, sortOrder, pageNumber, pageSize, animals.stream().map(Animal::getId).toList());
@@ -43,30 +60,42 @@ public class AnimalServiceImpl implements AnimalService {
         return animals.stream().map(animalMapper::toOutputDto).toList();
     }
 
+//    @Async
     @Override
-    public boolean assignAnimalToAdopter(long adopterId, long animalId) {
+    @Transactional
+    public CompletableFuture<Boolean> assignAnimalToAdopter(long animalId, long adopterId) {
 
-        Optional<Adopter> adopterOpt = adopterRepository.findById(adopterId);
-        Optional<Animal> animalOpt = animalRepository.findById(adopterId);
+        CompletableFuture<Boolean> futureBool = CompletableFuture.supplyAsync(() -> {
 
-        if (adopterOpt.isEmpty() || animalOpt.isEmpty()) {
-            return false;
-        }
-        Adopter adopter = adopterOpt.get();
-        Animal animal = animalOpt.get();
+            Optional<Adopter> adopterOpt = adopterRepository.findById(adopterId);
+            Optional<Animal> animalOpt = animalRepository.findById(animalId);
 
-        if (adopter.hasAnimal() || animal.hasAdopter()) {
-            return false;
-        }
+            if (animalOpt.isEmpty()) {
+                throw new EntityNotFoundException("Animal with id " + animalId + " not found");
+            } else if (adopterOpt.isEmpty()) {
+                throw new EntityNotFoundException("Adopter with id " + adopterId + " not found");
+            }
 
-        adopter.setAnimal(animal);
-        animal.setAdopter(adopter);
+//            return true ТОЛЬКО если у адоптера нет животного И у животного нет адоптера
+            return !adopterOpt.get().hasAnimal() && !animalOpt.get().hasAdopter();
+        });
 
-        adopterRepository.save(adopter);
-        animalRepository.save(animal);
+        futureBool.thenAcceptAsync(result -> {
+            if (result) {
 
-        log.info("Animal {} assigned to adopter {}", animal.getId(), adopter.getId());
-        return true;
+                Adopter adopter = adopterRepository.findById(adopterId).orElseThrow();
+                Animal animal = animalRepository.findById(animalId).orElseThrow();
+
+                adopter.setAnimal(animal);
+                animal.setAdopter(adopter);
+
+                adopterRepository.save(adopter);
+                animalRepository.save(animal);
+
+                log.info("Animal {} assigned to adopter {}", animal.getId(), adopter.getId());
+            }
+        });
+        return futureBool;
     }
 
     @Override
@@ -78,18 +107,5 @@ public class AnimalServiceImpl implements AnimalService {
         }
         animalRepository.deleteById(id);
         return true;
-    }
-
-    @Override
-    public Optional<AnimalOutputDto> addAnimal(AnimalInputDto inputDto) {
-        Animal animal = new Animal();
-
-        animal.setName(inputDto.getName());
-        animal.setAdult(inputDto.isAdult());
-        adopterRepository.findById(inputDto.getAdopterId()).ifPresent(animal::setAdopter);
-
-        Animal savedAnimal = animalRepository.save(animal);
-        log.info("Successfully saved: {}", savedAnimal);
-        return Optional.of(animalMapper.toOutputDto(savedAnimal));
     }
 }
