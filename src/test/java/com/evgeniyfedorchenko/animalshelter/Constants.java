@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
-
+// todo Создать второй набор констант - бОльшее их количество и разнообразие, скажем штук по 50 и добавить возможность тестирования на этом наборе
 public class Constants {
 
     private static final Faker FAKER = new Faker();

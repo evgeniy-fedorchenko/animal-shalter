@@ -9,7 +9,6 @@ import com.evgeniyfedorchenko.animalshelter.backend.entities.Animal;
 import com.evgeniyfedorchenko.animalshelter.backend.mappers.AdopterMapper;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.AdopterRepository;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.AnimalRepository;
-import net.datafaker.Faker;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,12 +55,12 @@ class AdopterControllerTest {
     @Autowired
     private AdopterMapper adopterMapper;
     @Autowired
-    private TestUtils testUtils;
+    private TestUtils<Adopter> testUtils;
 
     private List<Adopter> savedAdopters;
     private List<Animal> savedAnimals;
     private final Random random = new Random();
-    private final Faker faker = new Faker();
+
     @Container
     private static final PostgreSQLContainer<?> POSTGRES_CONTAINER =
             new PostgreSQLContainer<>("postgres:16.2");
@@ -136,6 +135,7 @@ class AdopterControllerTest {
                 .ignoringFields("id", "phoneNumber")
                 .isEqualTo(UNSAVED_ADOPTER);
 
+//        Тк phoneNumber при сохранении меняется на стандартный ^79\d{9}$, то его проверяем отдельно. Ведь объекты уже не сходятся по этому полю
         String phoneFromDb = adopterFromDb.get().getPhoneNumber();
         String phoneFromUnsavedAdopter = UNSAVED_ADOPTER.getPhoneNumber();
 
@@ -182,7 +182,7 @@ class AdopterControllerTest {
 
     @Test
     void getAdopterById_positiveTest() {
-        Adopter randomSavedAdopter = savedAdopters.get(faker.random().nextInt(savedAdopters.size()));
+        Adopter randomSavedAdopter = savedAdopters.get(random.nextInt(savedAdopters.size()));
 
         ResponseEntity<AdopterOutputDto> responseEntity = testRestTemplate.getForEntity(
                 baseAdopterUrl() + "/{id}",
@@ -201,7 +201,7 @@ class AdopterControllerTest {
         long randomIdx;
         List<Long> existingIds = savedAdopters.stream().map(Adopter::getId).toList();
         do {
-            randomIdx = faker.random().nextInt(Integer.MAX_VALUE);
+            randomIdx = random.nextInt(Integer.MAX_VALUE);
         } while (existingIds.contains(randomIdx));
 
         ResponseEntity<AdopterOutputDto> responseEntity = testRestTemplate.getForEntity(
@@ -231,11 +231,6 @@ class AdopterControllerTest {
     @MethodSource("provideParamsForSearchAdopters")
     void searchAdopters_positiveTest(String sortParam, SortOrder sortOrder, int pageNumber, int pageSize) {
 
-//        String randomFieldName = faker.options().option(Adopter.class.getDeclaredFields()).getName();
-//        SortOrder sortOrder = faker.random().nextBoolean() ? ASC : DESC;
-//        int pageNumber = faker.random().nextInt(1, 3);
-//        int pageSize = faker.random().nextInt(1, 5);
-
         ResponseEntity<List<AdopterOutputDto>> responseEntity = testRestTemplate.exchange(
                 baseAdopterUrl() + "?sortParam={sortParam}&sortOrder={sortOrder}&pageNumber={pageNumber}&pageSize={pageSize}",
                 HttpMethod.GET,
@@ -250,13 +245,13 @@ class AdopterControllerTest {
         List<AdopterOutputDto> actual = responseEntity.getBody();
         assertThat(actual).isNotNull();
 
-//        Сравниваем по id и проверяем сортировку  
+//        Сравниваем по id
         List<Long> actualIds = actual.stream().map(AdopterOutputDto::getId).toList();
         List<Long> allIds = savedAdopters.stream().map(Adopter::getId).toList();
         assertThat(allIds).containsAll(actualIds);
 
 //        Совершаем такой же запрос в БД, только напрямую и строго сравниваем резы (но без учета порядка)
-        List<Adopter> adopters = testUtils.searchAdopters("Adopter", sortParam, sortOrder, pageSize, (pageNumber - 1) * pageSize);
+        List<Adopter> adopters = testUtils.searchEntities(Adopter.class, sortParam, sortOrder, pageSize, (pageNumber - 1) * pageSize);
         List<AdopterOutputDto> expected = adopters.stream().map(adopterMapper::toOutputDto).toList();
         assertThat(actual).containsExactlyElementsOf(expected);
     }
@@ -304,7 +299,5 @@ class AdopterControllerTest {
 
         assertThat(adopterRepository.findAll().size())
                 .isEqualTo(repoSizeBeforeDeleting);
-
     }
-
 }
