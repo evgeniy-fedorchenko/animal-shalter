@@ -31,7 +31,7 @@ public class ReportServiceImpl implements ReportService {
                 reportRepository.findOldestUnviewedReports(PageRequest.of(0, limit)).stream()
                 .map(reportMapper::toDto)
                 .toList());
-        futureList.thenAccept(list -> {
+        futureList.thenAcceptAsync(list -> {
             List<Long> idsForUpdate = list.stream().map(ReportOutputDto::getId).toList();
             reportRepository.updateReportsViewedStatus(idsForUpdate);
         });
