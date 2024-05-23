@@ -46,7 +46,7 @@ public class Report {
 
     @NotNull(message = "Report's field 'sendingAt' should not be null")
     @CreationTimestamp
-    @Column(nullable = false, updatable = false, insertable = false)
+    @Column(nullable = false, updatable = false)
     private Instant sendingAt;
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
@@ -60,9 +60,13 @@ public class Report {
     @JoinColumn(name = "adopter_id")
     private Adopter adopter;
 
+    public boolean hasPhoto() {
+        return photoData != null;
+    }
+
     @Override
     public String toString() {
-        return "Report{id=%d, diet=%s, health=%s, changeBehavior=%s, hasPhotoData=%b, sendingAt=%s, isViewed=%s, isAccepted=%s, adopter=%s}"
+        return "Report{id=%d, diet=%s, health=%s, changeBehavior=%s, hasPhotoData=%b, sendingAt=%s, isVerified=%s, isAccepted=%s, adopter=%s}"
                 .formatted(
                         id,
                         diet != null ? diet : "no diet",

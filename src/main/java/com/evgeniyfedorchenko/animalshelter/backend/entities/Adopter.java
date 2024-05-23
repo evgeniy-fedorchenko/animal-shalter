@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -29,7 +30,7 @@ public class Adopter {
     private long id;
 
     @Positive(message = "Adopter's chatId must be positive")
-    @Column(unique = true)
+//    @Column(unique = true)
     private long chatId;
 
     @NotBlank(message = "Adopter's name should not be blank")
@@ -44,13 +45,48 @@ public class Adopter {
     private int assignedReportsQuantity;
 
     @Nullable
-    @OneToMany(mappedBy = "adopter", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "adopter", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Report> reports;
 
     @Nullable
     @OneToOne
     @JoinColumn(name = "animal_id")
     private Animal animal;
+
+    /**
+     * Метод удаляет переданный в параметре объект из коллекции {@code this.reports}, а так же устанавливает
+     * {@code null} в поле {@code Adopter adopter} у переданного экземпляра класса {@code Report}
+     * Удаление происходит локально, необходимо обновление в базе данных
+     * @param report объект, который нужно удалить из коллекции {@code this.reports}
+     * @return объект {@code Adopter} с обновленной коллекцией <b>reports</b>, из которой локально удален
+     * переданный в параметре объект {@code Report}. Если переданный объект не был найден в коллекции,
+     * то коллекция не изменится
+     */
+    public Adopter removeStudent(Report report) {
+        report.setAdopter(null);
+        if (this.reports == null) {
+            reports = new ArrayList<>();
+        }
+        this.reports.remove(report);
+        return this;
+    }
+
+    /**
+     * Метод добавляет переданный в параметре объект в коллекцию {@code this.reports}, а так же устанавливает
+     * объект {@code this} в поле {@code Adopter adopter} у переданного экземпляра {@code Report}
+     * Добавление происходит локально, необходимо обновление в базе данных
+     * @param report объект, который нужно добавить в коллекцию {@code this.reports}
+     * @return объект {@code Adopter} с обновленной коллекцией <b>reports</b>, в которую локально добавлен
+     * переданный в параметре объект {@code Report}
+     */
+    public Adopter addReport(Report report) {
+        if (reports == null) {
+            reports = new ArrayList<>();
+        }
+        report.setAdopter(this);
+        this.reports.add(report);
+        return this;
+    }
 
     public boolean hasAnimal() {
         return animal != null;

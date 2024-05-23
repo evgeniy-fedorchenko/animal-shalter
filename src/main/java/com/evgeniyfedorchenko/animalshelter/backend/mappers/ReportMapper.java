@@ -23,18 +23,23 @@ public class ReportMapper {
         reportOutputDto.setDiet(report.getDiet());
         reportOutputDto.setHealth(report.getHealth());
         reportOutputDto.setChangeBehavior(report.getChangeBehavior());
-        reportOutputDto.setPhotoUrl(generateUrl(String.valueOf(report.getId())));
         reportOutputDto.setSendingAt(report.getSendingAt());
+
+        reportOutputDto.setPhotoUrl(
+                report.hasPhoto()
+                        ? generateUrl(String.valueOf(report.getId()))
+                        : "no photo"
+        );
 
         Adopter adopter = report.getAdopter();
         reportOutputDto.setAdopterId(adopter.getId());
         reportOutputDto.setAdopterName(adopter.getName());
 
         Optional.ofNullable(adopter.getAnimal())
-                        .ifPresent(animal -> {
-                            reportOutputDto.setAnimalId(animal.getId());
-                            reportOutputDto.setAnimalName(animal.getName());
-                        });
+                .ifPresent(animal -> {
+                    reportOutputDto.setAnimalId(animal.getId());
+                    reportOutputDto.setAnimalName(animal.getName());
+                });
 
         return reportOutputDto;
     }
@@ -45,7 +50,7 @@ public class ReportMapper {
                 .host("localhost")
                 .port(port)
                 .path(ReportController.BASE_REPORT_URI)
-                .pathSegment(String.valueOf(reportId), "report")
+                .pathSegment(String.valueOf(reportId), "photo")
 
                 .build()
                 .toUri()

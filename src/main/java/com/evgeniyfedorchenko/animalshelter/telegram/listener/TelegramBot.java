@@ -57,12 +57,15 @@ public class TelegramBot extends TelegramLongPollingBot {
      *
      * @param messToSend @NotNull The object of the message ready to be sent
      */
-    public void send(@NotNull BotApiMethod<? extends Serializable> messToSend) {
+    public boolean send(@NotNull BotApiMethod<? extends Serializable> messToSend) {
 
         try {
+            TelegramBot telegramBot = this;
             execute(messToSend);
+            return true;
         } catch (TelegramApiException ex) {
             log.error("TelegramApiException was thrown. Cause: {}", ex.getMessage());
+            return false;
         }
 
     }
