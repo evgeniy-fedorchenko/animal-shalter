@@ -12,6 +12,7 @@ import com.evgeniyfedorchenko.animalshelter.backend.repositories.RepositoryUtils
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,7 +61,7 @@ public class AnimalServiceImpl implements AnimalService {
         return animals.stream().map(animalMapper::toOutputDto).toList();
     }
 
-//    @Async
+    @Async
     @Override
     @Transactional
     public CompletableFuture<Boolean> assignAnimalToAdopter(long animalId, long adopterId) {

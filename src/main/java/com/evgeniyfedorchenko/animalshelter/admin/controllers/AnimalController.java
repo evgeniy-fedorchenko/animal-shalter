@@ -81,6 +81,7 @@ public class AnimalController {
            Если найдены, но заняты - 400 badRequest
            Иначе - 200 ok */
         try {
+//            todo Возможно стоит возвращать просто ComplFuture и нафиг эту возню убрать убрать
             return animalService.assignAnimalToAdopter(animalId, adopterId).join()
                     ? ResponseEntity.ok().build()
                     : ResponseEntity.badRequest().build();

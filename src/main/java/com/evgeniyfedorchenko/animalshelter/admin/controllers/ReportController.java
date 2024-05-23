@@ -34,6 +34,7 @@ public class ReportController {
     @GetUnverifiedReportsDocumentation
     @GetMapping
     public CompletableFuture<List<ReportOutputDto>> getUnverifiedReports(
+//    public List<ReportOutputDto> getUnverifiedReports(
             @Positive(message = "Limit of reports must be positive")
             @Parameter(description = "The requested number of reports to verify them")
             @RequestParam(required = false, defaultValue = "10") int limit) {
@@ -58,8 +59,8 @@ public class ReportController {
             @Parameter(description = "Id of the  low-quality report", example = "1")
             @RequestParam long reportId) {
         return reportService.sendMessageAboutBadReport(reportId)
-                ? ResponseEntity.badRequest().build()
-                : ResponseEntity.ok().build();
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.badRequest().build();
     }
 
     @GetPhotoDocumentation
@@ -69,9 +70,9 @@ public class ReportController {
                                            @PathVariable Long id) {
         return reportService.getPhoto(id)
                 .map(report -> ResponseEntity.status(HttpStatus.OK)
-                        .contentLength(report.getPhotoData().length)
-                        .contentType(MediaType.valueOf(MediaType.IMAGE_PNG_VALUE))   // Пока поставим заглушку
-                        .body(report.getPhotoData()))
+                        .contentLength(report.getFirst().length)
+                        .contentType(MediaType.parseMediaType(report.getSecond()))
+                        .body(report.getFirst()))
 
                 .orElseGet(() -> ResponseEntity.of(Optional.empty()));
     }
