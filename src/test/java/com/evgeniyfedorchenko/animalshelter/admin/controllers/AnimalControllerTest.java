@@ -9,7 +9,6 @@ import com.evgeniyfedorchenko.animalshelter.backend.entities.Animal;
 import com.evgeniyfedorchenko.animalshelter.backend.mappers.AnimalMapper;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.AdopterRepository;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.AnimalRepository;
-import net.datafaker.Faker;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +29,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -62,8 +62,6 @@ public class AnimalControllerTest {
     private List<Adopter> savedAdopters;
     private List<Animal> savedAnimals;
     private final Random random = new Random();
-    private final Faker faker = new Faker();
-
 
     @Container
     private static final PostgreSQLContainer<?> POSTGRES_CONTAINER =
@@ -131,7 +129,7 @@ public class AnimalControllerTest {
 
     @Test
     void getAnimalById_positiveTest() {
-        Animal randomSavedAnimal = savedAnimals.get(random.nextInt(savedAnimals.size()));
+        Animal randomSavedAnimal = savedAnimals.get(random.nextInt(1, savedAnimals.size()));
 
         ResponseEntity<AnimalOutputDto> responseEntity = testRestTemplate.getForEntity(
                 baseAnimalUrl() + "/{id}",
@@ -147,16 +145,12 @@ public class AnimalControllerTest {
 
     @Test
     void getAnimalById_negativeTest() {
-        long randomIdx;
-        List<Long> existingIds = savedAnimals.stream().map(Animal::getId).toList();
-        do {
-            randomIdx = random.nextInt(Integer.MAX_VALUE);
-        } while (existingIds.contains(randomIdx));
+        long nonExistAnimalId = testUtils.getIdNonExistsIn(new ArrayList<>(savedAnimals));
 
         ResponseEntity<AnimalOutputDto> responseEntity = testRestTemplate.getForEntity(
                 baseAnimalUrl() + "/{id}",
                 AnimalOutputDto.class,
-                randomIdx);
+                nonExistAnimalId);
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(responseEntity.hasBody()).isFalse();
@@ -195,7 +189,7 @@ public class AnimalControllerTest {
         List<Long> allIds = savedAnimals.stream().map(Animal::getId).toList();
         assertThat(allIds).containsAll(actualIds);
 
-//        Совершаем такой же запрос в БД, только напрямую и строго сравниваем резы (но без учета порядка)
+//        Совершаем такой же запрос в БД, только напрямую и строго сравниваем результаты
         List<Animal> animals = testUtils.searchEntities(Animal.class, sortParam, sortOrder, pageSize, (pageNumber - 1) * pageSize);
         List<AnimalOutputDto> expected = animals.stream().map(animalMapper::toOutputDto).toList();
         assertThat(actual).containsExactlyElementsOf(expected);
@@ -204,8 +198,8 @@ public class AnimalControllerTest {
     @Test
     void assignedAnimalToAnimal_positiveTest() throws InterruptedException {
 //        Берем любой объект Adopter и любой Animal. Сбрасываем у них связь на null
-        Animal randomSavedAnimal = savedAnimals.get(random.nextInt(savedAnimals.size()));
-        Adopter randomSavedAdopter = savedAdopters.get(random.nextInt(savedAdopters.size()));
+        Animal randomSavedAnimal = savedAnimals.get(random.nextInt(1, savedAnimals.size()));
+        Adopter randomSavedAdopter = savedAdopters.get(random.nextInt(1, savedAdopters.size()));
         randomSavedAnimal.setAdopter(null);
         randomSavedAdopter.setAnimal(null);
         animalRepository.save(randomSavedAnimal);
@@ -226,7 +220,7 @@ public class AnimalControllerTest {
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responseEntity.hasBody()).isFalse();
 
-//         Хочется немного подождать, пока асинхронный поток сохранит обновленные сущности
+//         Хочется немного подождать, пока асинхронный поток сохранит обновленные сущности или нет в этом смысла?
         Thread.sleep(2000);
         Animal newAnimal = animalRepository.findById(randomSavedAnimal.getId()).orElseThrow();
         Adopter newAdopter = adopterRepository.findById(randomSavedAdopter.getId()).orElseThrow();
@@ -238,16 +232,11 @@ public class AnimalControllerTest {
     }
 
     @Test
-    void assignedAnimalToAnimalIfAnimalNotFound_negativeTest() {
+    void assignedAnimalToAdopterIfAnimalNotFound_negativeTest() {
+        long nonExistAnimalId = testUtils.getIdNonExistsIn(new ArrayList<>(savedAnimals));
 
-        long nonexistentAnimalId;
-        List<Long> existingAnimalIds = savedAnimals.stream().map(Animal::getId).toList();
-        do {
-            nonexistentAnimalId = random.nextInt(Integer.MAX_VALUE);
-        } while (existingAnimalIds.contains(nonexistentAnimalId));
-        Adopter randomSavedAdopter = savedAdopters.get(random.nextInt(savedAdopters.size()));
+        Adopter randomSavedAdopter = savedAdopters.get(random.nextInt(1, savedAdopters.size()));
         Animal oldAnimalOfAdopter = randomSavedAdopter.getAnimal();
-
 
         ResponseEntity<Void> responseEntity = testRestTemplate.exchange(
                 baseAnimalUrl() + "?adopterId={adopterId}&animalId={animalId}",
@@ -255,7 +244,7 @@ public class AnimalControllerTest {
                 HttpEntity.EMPTY,
                 Void.class,
                 randomSavedAdopter.getId(),
-                nonexistentAnimalId
+                nonExistAnimalId
         );
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -266,15 +255,11 @@ public class AnimalControllerTest {
                 .isEqualTo(oldAnimalOfAdopter);
     }
 
+
     @Test
     void assignedAnimalToAnimalIfAdopterNotFound_negativeTest() {
-
-        long nonexistentAdopterId;
-        List<Long> existingAdoptersIds = savedAdopters.stream().map(Adopter::getId).toList();
-        do {
-            nonexistentAdopterId = random.nextInt(Integer.MAX_VALUE);
-        } while (existingAdoptersIds.contains(nonexistentAdopterId));
-        Animal randomSavedAnimal = savedAnimals.get(random.nextInt(savedAnimals.size()));
+        long nonExistAdopterId = testUtils.getIdNonExistsIn(new ArrayList<>(savedAdopters));
+        Animal randomSavedAnimal = savedAnimals.get(random.nextInt(1, savedAnimals.size()));
         Adopter oldAdopterOfAnimal = randomSavedAnimal.getAdopter();
 
 
@@ -283,7 +268,7 @@ public class AnimalControllerTest {
                 HttpMethod.PATCH,
                 HttpEntity.EMPTY,
                 Void.class,
-                nonexistentAdopterId,
+                nonExistAdopterId,
                 randomSavedAnimal.getId()
         );
 
@@ -299,27 +284,27 @@ public class AnimalControllerTest {
     void assignedAnimalToAdopterIfAnimalIsOccupied_negativeTest() {
 
 //        Нам нужен существующий Adopter без животного и существующий Animal у которого есть усыновитель (другой)
-        Adopter targetAdopter = savedAdopters.get(random.nextInt(savedAdopters.size()));
-        targetAdopter.setAnimal(null);
-        adopterRepository.save(targetAdopter);
+        Adopter randonSavedAdopter = savedAdopters.get(random.nextInt(1, savedAdopters.size()));
+        randonSavedAdopter.setAnimal(null);
+        adopterRepository.save(randonSavedAdopter);
 
-        Animal occupiedAnimal = savedAnimals.get(random.nextInt(savedAnimals.size()));
+        Animal occupiedAnimal = savedAnimals.get(random.nextInt(1, savedAnimals.size()));
         Adopter anotherAdopter;
         do {
-            anotherAdopter = savedAdopters.get(random.nextInt(savedAdopters.size()));
-        } while (anotherAdopter.equals(targetAdopter));
+            anotherAdopter = savedAdopters.get(random.nextInt(1, savedAdopters.size()));
+        } while (anotherAdopter.equals(randonSavedAdopter));
         anotherAdopter.setAnimal(occupiedAnimal);
         adopterRepository.save(anotherAdopter);
         occupiedAnimal.setAdopter(anotherAdopter);
         animalRepository.save(occupiedAnimal);
 
-        RestTemplate patchedRestTemplate = testUtils.patchedRestTemplate(testRestTemplate);
+        RestTemplate patchedRestTemplate = testUtils.patchRestTemplate(testRestTemplate);
         ResponseEntity<Void> responseEntity = patchedRestTemplate.exchange(
                 baseAnimalUrl() + "?adopterId={adopterId}&animalId={animalId}",
                 HttpMethod.PATCH,
                 HttpEntity.EMPTY,
                 Void.class,
-                targetAdopter.getId(),
+                randonSavedAdopter.getId(),
                 occupiedAnimal.getId()
         );
 
@@ -335,21 +320,22 @@ public class AnimalControllerTest {
     void assignedAnimalToAdopterIfAdopterIsOccupied_negativeTest() {
 
 //        Нам нужен существующий Animal без усыновителя и существующий Adopter у которого есть животное (другое)
-        Animal targetAnimal = savedAnimals.get(random.nextInt(savedAnimals.size()));
+        Animal targetAnimal = savedAnimals.get(random.nextInt(1, savedAnimals.size()));
         targetAnimal.setAdopter(null);
         animalRepository.save(targetAnimal);
 
-        Adopter occupiedAdopter = savedAdopters.get(random.nextInt(savedAdopters.size()));
+        Adopter occupiedAdopter = savedAdopters.get(random.nextInt(1, savedAdopters.size()));
         Animal anotherAnimal;
         do {
-            anotherAnimal = savedAnimals.get(random.nextInt(savedAnimals.size()));
+            anotherAnimal = savedAnimals.get(random.nextInt(1, savedAnimals.size()));
         } while (anotherAnimal.equals(targetAnimal));
+
         occupiedAdopter.setAnimal(anotherAnimal);
         adopterRepository.save(occupiedAdopter);
         anotherAnimal.setAdopter(occupiedAdopter);
         animalRepository.save(anotherAnimal);
 
-        RestTemplate patchedRestTemplate = testUtils.patchedRestTemplate(testRestTemplate);
+        RestTemplate patchedRestTemplate = testUtils.patchRestTemplate(testRestTemplate);
         ResponseEntity<Void> responseEntity = patchedRestTemplate.exchange(
                 baseAnimalUrl() + "?animalId={animalId}&adopterId={adopterId}",
                 HttpMethod.PATCH,
@@ -391,11 +377,7 @@ public class AnimalControllerTest {
     @Test
     void deleteAnimal_negativeTest() {
 
-        List<Long> ids = animalRepository.findAll().stream().map(Animal::getId).toList();
-        long nonexistentId;
-        do {
-            nonexistentId = random.nextLong(0, Long.MAX_VALUE);
-        } while (ids.contains(nonexistentId));
+        long nonExistAnimalId = testUtils.getIdNonExistsIn(new ArrayList<>(savedAnimals));
         int repoSizeBeforeDeleting = animalRepository.findAll().size();
 
         ResponseEntity<Void> responseEntity = testRestTemplate.exchange(
@@ -403,7 +385,7 @@ public class AnimalControllerTest {
                 HttpMethod.DELETE,
                 HttpEntity.EMPTY,
                 Void.class,
-                nonexistentId
+                nonExistAnimalId
         );
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(responseEntity.getBody()).isNull();

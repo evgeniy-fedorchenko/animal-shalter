@@ -28,6 +28,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -182,12 +183,13 @@ class AdopterControllerTest {
 
     @Test
     void getAdopterById_positiveTest() {
-        Adopter randomSavedAdopter = savedAdopters.get(random.nextInt(savedAdopters.size()));
+        Adopter randomSavedAdopter = savedAdopters.get(random.nextInt(1, savedAdopters.size()));
 
         ResponseEntity<AdopterOutputDto> responseEntity = testRestTemplate.getForEntity(
                 baseAdopterUrl() + "/{id}",
                 AdopterOutputDto.class,
-                randomSavedAdopter.getId());
+                randomSavedAdopter.getId()
+        );
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responseEntity.getBody())
@@ -198,16 +200,11 @@ class AdopterControllerTest {
 
     @Test
     void getAdopterById_negativeTest() {
-        long randomIdx;
-        List<Long> existingIds = savedAdopters.stream().map(Adopter::getId).toList();
-        do {
-            randomIdx = random.nextInt(Integer.MAX_VALUE);
-        } while (existingIds.contains(randomIdx));
-
+        long nonExistId = testUtils.getIdNonExistsIn(new ArrayList<>(savedAdopters));
         ResponseEntity<AdopterOutputDto> responseEntity = testRestTemplate.getForEntity(
                 baseAdopterUrl() + "/{id}",
                 AdopterOutputDto.class,
-                randomIdx);
+                nonExistId);
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(responseEntity.hasBody()).isFalse();
@@ -280,11 +277,7 @@ class AdopterControllerTest {
     @Test
     void deleteAdopter_negativeTest() {
 
-        List<Long> ids = adopterRepository.findAll().stream().map(Adopter::getId).toList();
-        long nonexistentId;
-        do {
-            nonexistentId = random.nextLong(0, Long.MAX_VALUE);
-        } while (ids.contains(nonexistentId));
+        long nonExistId = testUtils.getIdNonExistsIn(new ArrayList<>(savedAdopters));
         int repoSizeBeforeDeleting = adopterRepository.findAll().size();
 
         ResponseEntity<Void> responseEntity = testRestTemplate.exchange(
@@ -292,7 +285,7 @@ class AdopterControllerTest {
                 HttpMethod.DELETE,
                 HttpEntity.EMPTY,
                 Void.class,
-                nonexistentId
+                nonExistId
         );
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(responseEntity.getBody()).isNull();

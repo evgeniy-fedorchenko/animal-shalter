@@ -63,6 +63,15 @@
             <artifactId>jaxb-api</artifactId>
             <version>2.3.1</version>
         </dependency>
+
+        <!-- Для определения Content-Type по байтовому массиву.
+             Я в шоке, на Java реально есть библиотеки для абсолютно любой ситуации -->
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>2.9.2</version>
+        </dependency>
+
         <!--		Tests        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
