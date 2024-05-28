@@ -26,7 +26,7 @@ public class Start implements Command {
 //        MessageModel messageModel = new MessageModel(chatId, START, keyboardData);
         MessageModel messageModel = MessageModel.builder()
                 .chatId(chatId)
-                .messageData(VOLUNTEER)
+                .messageData(START)
                 .keyboardData(keyboardData)
                 .build();
 

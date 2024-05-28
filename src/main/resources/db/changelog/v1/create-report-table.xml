@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+
+    <changeSet id="3" author="evgeniy-fedorchenko">
+
+        <preConditions>
+            <and>
+                <not>
+                    <tableExists tableName="reports"/>
+                </not>
+                <tableExists tableName="adopters"/>
+            </and>
+        </preConditions>
+
+        <comment>Create Report table</comment>
+        <createTable tableName="reports">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints
+                        primaryKey="true"
+                        nullable="false"
+                />
+            </column>
+            <column name="diet" type="varchar(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="health" type="varchar(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="change_behavior" type="varchar(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="photo_data" type="oid">
+                <constraints nullable="true"/>
+            </column>
+            <column name="sending_at" type="timestamp" defaultValueComputed="current_timestamp">
+                <constraints nullable="false" checkConstraint=""/>
+            </column>
+            <column name="verified" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="accepted" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="adopter_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="reports"
+                                 baseColumnNames="adopter_id"
+                                 constraintName="FK_ADOPTER_ID"
+                                 referencedTableName="adopters"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>

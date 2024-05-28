@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+
+    <changeSet id="2" author="evgeniy-fedorchenko">
+
+        <preConditions>
+            <and>
+                <not>
+                    <tableExists tableName="animals"/>
+                </not>
+                <tableExists tableName="adopters"/>
+            </and>
+        </preConditions>
+
+        <comment>Create Animal table</comment>
+        <createTable tableName="animals">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints
+                        primaryKey="true"
+                        nullable="false"
+                />
+            </column>
+            <column name="name" type="varchar(30)">
+                <constraints
+                        nullable="false"
+                />
+            </column>
+            <column name="adult" type="boolean">
+                <constraints
+                        nullable="false"
+                />
+            </column>
+            <column name="adopter_id" type="bigint">
+                <constraints
+                        nullable="true"
+                />
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="animals"
+                                 baseColumnNames="adopter_id"
+                                 constraintName="FK_ADOPTER_ID"
+                                 referencedTableName="adopters"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+
+
+</databaseChangeLog>

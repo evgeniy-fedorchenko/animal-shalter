@@ -1,10 +1,7 @@
 package com.evgeniyfedorchenko.animalshelter.backend.repositories;
 
 import com.evgeniyfedorchenko.animalshelter.admin.controllers.SortOrder;
-import com.evgeniyfedorchenko.animalshelter.backend.entities.Adopter;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -21,7 +18,7 @@ public class RepositoryUtils {
     @PersistenceContext
     private final EntityManager entityManager;
 
-//    todo создать объект для этих параметров
+    //    todo создать объект для этих параметров
     public List<?> searchEntities(Class<?> entity, String sortParam, SortOrder sortOrder, int limit, int offset) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<?> cq = cb.createQuery(entity);
@@ -29,7 +26,7 @@ public class RepositoryUtils {
 
         Order order;
 
-        if (isIterableEntities(sortParam)) {
+        if (isIterableEntities(entity, sortParam)) {
               /* Если sortParam - это что-то итерируемое (например список reports - сортируем на основании
                  размера списка): создаем подзапрос и смотрим размер списка, далее создаем JOIN */
             Subquery<Long> subquery = cq.subquery(Long.class);
@@ -48,7 +45,7 @@ public class RepositoryUtils {
                Значит надо выкинуть все объекты у которых по сути нет отчетов */
             cq.where(cb.greaterThan(countExpression, 0L));
 
-        } else if (isAssignableEntity(sortParam)) {
+        } else if (isAssignableEntity(entity, sortParam)) {
 
 //            Если sortParam - это связанная сущность, то сортируем по id этой сущности и выводим в INNER JOIN
             Join<?, ?> joinTarget = rootAdopter.join(sortParam, JoinType.INNER);
@@ -72,15 +69,36 @@ public class RepositoryUtils {
     }
 
 
-    boolean isIterableEntities(String sortParam) {
+    /* Этот метод, создан для того, чтобы быстро детектить такие поля, как например 'List<Report>'
+       В этом случае в sortParam будет лежать 'reports'. Мы смотрим, что у класса есть такое поле, что оно
+       является коллекцией и что оно параметризовано СУЩНОСТЬЮ (ведь мы будем его искать в бд)*/
+
+    /**
+     * Метод проверяет, содержится ли в поле какой-то итерируемый и параметризованный сущностью объект. Алгоритм:
+     * <ul>
+     *     <li>1. У класса {@code entityClass} получаем поле под названием, переданным в {@code fieldName}</li>
+     *     <li>2. Если оно параметризовано, то смотрим чем именно (смотрим, что там один аргумент, а не
+     *            два например, как в {@code Map}) и смотрим что поле параметризовано именно классом</li>
+     *     <li>3. Проверяем что fieldName реализует интерфейс Iterable и что entityClass является
+     *            сущностью (имеет аннотацию {@code @Entity})</li>
+     * </ul>
+     * Только если все условия вернули true мы можем сказать, что поле {@code fieldName} является итерируемым
+     * и что оно параметризовано классом {@code entityClass}
+     *
+     * @param entityClass класс, представляющий собой сущность, которой должно быть параметризовано поле,
+     *                    представленное в {@code fieldName}
+     * @param fieldName   строковое название поля, которое проверяется на параметризацию и итерируемость
+     * @return true, если fieldName содержит название итерируемого поля, которое параметризовано сущностью entityClass
+     */
+    boolean isIterableEntities(Class<?> entityClass, String fieldName) {
 
         try {
-            Field field = Adopter.class.getDeclaredField(sortParam);
+            Field field = entityClass.getDeclaredField(fieldName);
 
             if (field.getGenericType() instanceof ParameterizedType paramType) {
                 Type[] typeArguments = paramType.getActualTypeArguments();
-                if (typeArguments.length == 1 && typeArguments[0] instanceof Class<?> entityClass) {
-                    return Iterable.class.isAssignableFrom(field.getType()) && entityClass.isAnnotationPresent(Entity.class);
+                if (typeArguments.length == 1 && typeArguments[0] instanceof Class<?> parametrizedClass) {
+                    return Iterable.class.isAssignableFrom(field.getType()) && parametrizedClass.isAnnotationPresent(Entity.class);
                 }
             }
         } catch (NoSuchFieldException _) {
@@ -89,15 +107,28 @@ public class RepositoryUtils {
         return false;
     }
 
-    boolean isAssignableEntity(String fieldName) {
+
+    /**
+     * Метод проверяет, что поле представленное в {@code fieldName} содержит сущность и само находится
+     * в классе сущности. А так же что поле помечено аннотацией отношений (ассоциаций) между сущностями
+     * @param entityClass класс сущности, которой должно принадлежать поле
+     * @param fieldName название поля, которое должно иметь аннотацию ассоциаций сущностей содержать объект сущности
+     * @return true, если в поле {@code fieldName} содержится сущность класса {@code entityClass}
+     */
+    boolean isAssignableEntity(Class<?> entityClass, String fieldName) {
         try {
-            Field field = Adopter.class.getDeclaredField(fieldName);
+            Field field = entityClass.getDeclaredField(fieldName);
             Class<?> fieldType = field.getType();
-            return fieldType.isAnnotationPresent(Entity.class);
+            boolean isFieldAssign = field.isAnnotationPresent(OneToOne.class)
+                                 || field.isAnnotationPresent(OneToMany.class)
+                                 || field.isAnnotationPresent(ManyToOne.class)
+                                 || field.isAnnotationPresent(ManyToMany.class);
+// FIXME 25.05.2024 15:19 - добавить реальную проверку связи, а не просто наличие аннотации
+            return isFieldAssign
+                    && entityClass.isAnnotationPresent(Entity.class)
+                    && fieldType.isAnnotationPresent(Entity.class);
         } catch (NoSuchFieldException _) {
             return false;
         }
     }
-
-
 }

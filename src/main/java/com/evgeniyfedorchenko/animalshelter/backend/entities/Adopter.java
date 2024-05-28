@@ -30,7 +30,7 @@ public class Adopter {
     private long id;
 
     @Positive(message = "Adopter's chatId must be positive")
-//    @Column(unique = true)
+    @Column(unique = true)
     private long chatId;
 
     @NotBlank(message = "Adopter's name should not be blank")
