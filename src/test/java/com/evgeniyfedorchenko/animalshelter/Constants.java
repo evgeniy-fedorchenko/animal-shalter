@@ -20,27 +20,27 @@ public class Constants {
     public static final Adopter ADOPTER_3 = new Adopter();
     public static final Adopter ADOPTER_4 = new Adopter();
     public static final Adopter ADOPTER_5 = new Adopter();
-    public static Adopter UNSAVED_ADOPTER = new Adopter();
+    public static final Adopter UNSAVED_ADOPTER = new Adopter();
 
     public static final Animal ANIMAL_1 = new Animal();
     public static final Animal ANIMAL_2 = new Animal();
     public static final Animal ANIMAL_3 = new Animal();
     public static final Animal ANIMAL_4 = new Animal();
     public static final Animal ANIMAL_5 = new Animal();
-    public static Animal UNSAVED_ANIMAL = new Animal();
+    public static final Animal UNSAVED_ANIMAL = new Animal();
 
     public static final Report REPORT_1 = new Report();
     public static final Report REPORT_2 = new Report();
     public static final Report REPORT_3 = new Report();
     public static final Report REPORT_4 = new Report();
     public static final Report REPORT_5 = new Report();
-    public static Report UNSAVED_REPORT = new Report();
+    public static final Report UNSAVED_REPORT = new Report();
 
-    public static List<Adopter> TEST_5_ADOPTERS = new ArrayList<>(List.of(
+    public static final List<Adopter> TEST_5_ADOPTERS = new ArrayList<>(List.of(
             ADOPTER_1, ADOPTER_2, ADOPTER_3, ADOPTER_4, ADOPTER_5));
-    public static List<Animal> TEST_5_ANIMALS = new ArrayList<>(List.of(
+    public static final List<Animal> TEST_5_ANIMALS = new ArrayList<>(List.of(
             ANIMAL_1, ANIMAL_2, ANIMAL_3, ANIMAL_4, ANIMAL_5));
-    public static List<Report> TEST_5_REPORTS = new ArrayList<>(List.of(
+    public static final List<Report> TEST_5_REPORTS = new ArrayList<>(List.of(
             REPORT_1, REPORT_2, REPORT_3, REPORT_4, REPORT_5));
 
     public static void testConstantsInitialize() {
@@ -52,7 +52,7 @@ public class Constants {
     private static void adopterConstantsInitialize() {
         Stream.of(ADOPTER_1, ADOPTER_2, ADOPTER_3, ADOPTER_4, ADOPTER_5, UNSAVED_ADOPTER)
                 .forEach(adopter -> {
-                    adopter.setChatId(FAKER.random().nextLong(5076421775L, 5076421775L));
+                    adopter.setChatId(FAKER.random().nextLong(1L, 9999999999L));
                     adopter.setName(FAKER.letterify("adopterName?????"));
                     adopter.setPhoneNumber("79" + FAKER.number().digits(9));
                     adopter.setAssignedReportsQuantity(30);

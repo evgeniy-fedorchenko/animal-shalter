@@ -5,7 +5,7 @@ import com.evgeniyfedorchenko.animalshelter.backend.dto.AdopterInputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AnimalInputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Adopter;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Animal;
-import com.evgeniyfedorchenko.animalshelter.backend.entities.Report;
+import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import java.util.function.Function;
 
 @Component
 public class TestUtils<E> {
@@ -169,24 +168,35 @@ public class TestUtils<E> {
         if (entityCollection == null || entityCollection.isEmpty()) {
             throw new NullPointerException("entityCollection is null or empty");
         }
-        Function<Object, Long> function = switch (entityCollection.getFirst().getClass().getSimpleName()) {
-            case ("Animal") -> entity -> {
-                Animal animal = (Animal) entity;
-                return animal.getId();
-            };
-            case ("Adopter") -> entity -> {
-                Adopter adopter = (Adopter) entity;
-                return adopter.getId();
-            };
-            case ("Report") -> entity -> {
-                Report report = (Report) entity;
-                return report.getId();
-            };
-            default -> throw new IllegalStateException("Unexpected value: " + entityCollection.getFirst().getClass());
-        };
+
+//        List<Long> existingIdx = switch (entityCollection) {
+//            case List<?> adopters when adopters.getFirst() instanceof Adopter ->
+//                new ArrayList<>((List<? extends Adopter>) adopters).stream().map(Adopter::getId).toList();
+//
+//            case List<?> animals when animals instanceof Animal ->
+//                    animals.stream().map(obj -> (Animal) obj).map(Animal::getId).toList();
+//
+//            case List<?> reports when reports.getFirst() instanceof Report ->
+//                    reports.stream().map(obj -> (Report) obj).map(Report::getId).toList();
+//
+//            default -> throw new IllegalStateException("Unexpected value: " + entityCollection);
+//        };
+
+        if (!entityCollection.getFirst().getClass().isAnnotationPresent(Entity.class)) {
+            throw new IllegalStateException("Unexpected value: " + entityCollection);
+        }
+//        Дурацкие checked-исключения вообще не дружат со stream api :(
+        List<Long> existingIds = entityCollection.stream()
+                .map(entity -> {
+                    try {
+                        return (Long) entity.getClass().getMethod("getId").invoke(entity);
+                    } catch (ReflectiveOperationException _) {
+                        throw new RuntimeException("Reflect operation <.getMethod(\"getId\")> filed. Class: %s"
+                                .formatted(entity.getClass().getSimpleName()));
+                    }
+                }).toList();
 
         long nonExistId;
-        List<Long> existingIds = entityCollection.stream().map(function).toList();
         do {
             nonExistId = random.nextInt(1, Integer.MAX_VALUE);
         } while (existingIds.contains(nonExistId));
