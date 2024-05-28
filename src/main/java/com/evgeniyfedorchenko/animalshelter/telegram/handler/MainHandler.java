@@ -38,11 +38,9 @@ public class MainHandler {
 
 
 // FIXME 25.05.2024 20:22 - поправить джавадок
-
     /**
      * A method for processing <b>commands</b> sent from a Telegram bot. The method
      * searches for registered implementations of {@link Command} and matches them with the message text
-     *
      * @param message Object of type {@code Message} for processing
      * @return A ready-made message object to send via Telegram bot
      */
@@ -75,6 +73,7 @@ public class MainHandler {
         Map<String, Callback> callbacksMap = applicationContext.getBeansOfType(Callback.class);
 
         CallbackQuery callbackQuery = update.getCallbackQuery();
+
         Callback callback = callbacksMap.get(callbackQuery.getData());
         Long chatId = callbackQuery.getMessage().getChatId();
 
@@ -108,7 +107,7 @@ public class MainHandler {
             return new SendMessage(chatId.toString(), text);
         }
     }
-
+  
     @Async
     public CompletableFuture<SendMessage> savePhoto(Message message) {
 //        TelegramBot telegramBot = applicationContext.getBean("TelegramBot", TelegramBot.class);

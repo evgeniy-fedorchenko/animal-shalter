@@ -10,8 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.List;
-
 
 /**
  * Класс представляет сущность гостевого пользователя приложения (усыновителя)
@@ -46,7 +44,6 @@ public class Adopter {
 
     @Nullable
     @OneToMany(mappedBy = "adopter", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<Report> reports;
 
     @Nullable
     @OneToOne

@@ -26,4 +26,5 @@ public class AnimalInputDto {
 //    @Positive(message = "Adopter's id must be positive")
 //    private Long adopterId;
 
+
 }

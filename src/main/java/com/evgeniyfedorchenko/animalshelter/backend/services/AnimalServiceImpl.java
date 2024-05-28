@@ -44,6 +44,7 @@ public class AnimalServiceImpl implements AnimalService {
         return Optional.of(animalMapper.toOutputDto(savedAnimal));
     }
 
+
     @Override
     public Optional<AnimalOutputDto> getAnimal(long id) {
         return animalRepository.findById(id).map(animalMapper::toOutputDto);
@@ -97,6 +98,7 @@ public class AnimalServiceImpl implements AnimalService {
             }
         });
         return futureBool;
+
     }
 
     @Override

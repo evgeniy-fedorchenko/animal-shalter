@@ -35,6 +35,7 @@ public class ReportController {
     @GetMapping
     public CompletableFuture<List<ReportOutputDto>> getUnverifiedReports(
 //    public List<ReportOutputDto> getUnverifiedReports(
+
             @Positive(message = "Limit of reports must be positive")
             @Parameter(description = "The requested number of reports to verify them")
             @RequestParam(required = false, defaultValue = "10") int limit) {
