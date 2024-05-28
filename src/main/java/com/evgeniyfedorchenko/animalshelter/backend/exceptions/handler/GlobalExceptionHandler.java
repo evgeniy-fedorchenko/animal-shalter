@@ -4,7 +4,6 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -20,32 +19,19 @@ import java.util.stream.IntStream;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(DataIntegrityViolationException.class)     // Нарушение целостности базы данных
-    public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+    @ExceptionHandler(ConstraintViolationException.class)     // Нарушение целостности базы данных
+    public ResponseEntity<String> handleDataIntegrityViolationException(ConstraintViolationException ex) {
 
         StringBuilder errMessBuilder = new StringBuilder("Violations of data integrity: \n");
-        Set<ConstraintViolation<?>> constraintViolations;
-
-    /* Чаще всего спринговый org.springframework.dao.DataIntegrityViolationException возникает из-за того, что в БД
-       хотели положить что-то неподходящее для неё, то есть из-за jakarta.validation.ConstraintViolationException */
-        if (ex.getCause() instanceof ConstraintViolationException cve) {
-
-            constraintViolations = cve.getConstraintViolations();
-            IntStream.range(0, constraintViolations.size())
-                    .forEach(_ -> errMessBuilder.append(". ")
-                            .append(constraintViolations.iterator().next().getMessage())
-                            .append("\n"));
-        } else {
-            constraintViolations = null;
-            errMessBuilder.append(ex.getMessage());
-        }
+        final Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
+        IntStream.range(0, constraintViolations.size())
+                .forEach(_ -> errMessBuilder.append(". ")
+                        .append(constraintViolations.iterator().next().getMessage())
+                        .append("\n"));
 
         ResponseEntity<String> body = ResponseEntity.status(HttpStatus.CONFLICT).body(errMessBuilder.toString());
-        if (constraintViolations == null) {
-            log.info("Exception {} handled. Cause: {}", ex.getClass().getSimpleName(), ex.getMessage());
-        } else {
-            log.debug("In inputParam(s) were found {} invalidValue, response body = {}", constraintViolations.size(), body.getBody());
-        }
+        log.debug("In inputParam(s) were found {} invalidValue, response body = {}", constraintViolations.size(), body.getBody());
+
         return body;
     }
 
@@ -68,7 +54,7 @@ public class GlobalExceptionHandler {
         return body;
     }
 
-    @ExceptionHandler(ValidationException.class)   // Нарушение
+    @ExceptionHandler(ValidationException.class)
     public ResponseEntity<String> handleValidationException(ValidationException ex) {
         ResponseEntity<String> body = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
         log.debug("In inputDto were found invalid param, response body = {}", body);

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+
+    <changeSet id="1" author="evgeniy-fedorchenko">
+
+        <preConditions>
+            <not>
+                <tableExists tableName="adopters"/>
+            </not>
+        </preConditions>
+
+        <comment>Create Adopter table</comment>
+        <createTable tableName="adopters">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints
+                    primaryKey="true"
+                    nullable="false"
+                />
+            </column>
+            <column name="chat_id" type="bigint">
+                <constraints
+                    unique="true"
+                    nullable="false"
+                    checkConstraint="check(chat_id > 0)"
+                />
+            </column>
+            <column name="name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="phone_number" type="varchar(20)">
+                <constraints
+                    nullable="false"
+                    checkConstraint="check (phone_number LIKE '(\+79|79|89)\d{9}')"
+                />
+            </column>
+            <column name="assigned_reports_quantity" type="int">
+                <constraints
+                        nullable="false"
+                        checkConstraint="check assigned_reports_quantity >= 30"
+                />
+            </column>
+            <column name="animal_id" type="bigint">
+                <constraints
+                        nullable="true"
+                />
+            </column>
+        </createTable>
+    </changeSet>
+
+
+</databaseChangeLog>
