@@ -126,7 +126,7 @@ public class TestUtils<E> {
      *
      * @param format Константа перечисления {@link Format}, задает формат выходного изображения
      * @return массив байт, созданный по правилам указанного формата
-     * @throws IOException если во время записи возникает ошибка или не удается создать требуемый ImageOutputStream
+     * @throws RuntimeException если во время записи возникает ошибка или не удается создать требуемый ImageOutputStream
      */
     public byte[] createImage(Format format) {
         int width = random.nextInt(500, 1000);

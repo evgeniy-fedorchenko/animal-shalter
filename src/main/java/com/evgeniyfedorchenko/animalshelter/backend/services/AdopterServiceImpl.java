@@ -59,7 +59,8 @@ public class AdopterServiceImpl implements AdopterService {
     public List<AdopterOutputDto> searchAdopters(String sortParam, SortOrder sortOrder, int pageSize, int pageNumber) {
 
         int offset = (pageNumber - 1) * pageSize;
-        List<Adopter> adopters = (List<Adopter>) repositoryUtils.searchEntities(Adopter.class, sortParam, sortOrder, pageSize, offset);
+        List<Adopter> adopters =
+                (List<Adopter>) repositoryUtils.searchEntities(Adopter.class, sortParam, sortOrder, pageSize, offset);
 
         log.debug("Calling searchAdopters with params: sortParam={}, sortOrder={}, pageNumber={}, pageSize={} returned student's ids: {}",
                 sortParam, sortOrder, pageNumber, pageSize, adopters.stream().map(Adopter::getId).toList());

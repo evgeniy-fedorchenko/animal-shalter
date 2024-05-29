@@ -19,6 +19,22 @@ public class RepositoryUtils {
     private final EntityManager entityManager;
 
     //    todo создать объект для этих параметров
+
+
+    /**
+     * Метод предлагает гибкий поиск и отображение различных сущностей, находящимся в целевой базе данных.
+     * Поддерживается множество параметров
+     * @param entity Экземпляр класса искомых сущностей. Определяет тип объектов, среди которых будет происходить поиск
+     *               Итоговый результат будет параметризован этим классом
+     * @param sortParam Название поля сущности, на которое следует опираться по поиске. Если под этим названием в
+     *                  представленном классе лежит итерируемый объект, то сортировка результатов поиска будет
+     *                  происходить на основе количества элементов. Если под этим названием лежит связанная сущность -
+     *                  - сортировка будет происходить по полю id этих сущностей
+     * @param sortOrder Порядок сортировки (ASC или DESC), константа перечисления {@link SortOrder}
+     * @param limit Количество элементов для отображения (для пагинации)
+     * @param offset Количество элементов, которые нужно пропустить (для пагинации)
+     * @return Список объектов, найденных и отсортированных в соответствии с указанными параметрами
+     */
     public List<?> searchEntities(Class<?> entity, String sortParam, SortOrder sortOrder, int limit, int offset) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<?> cq = cb.createQuery(entity);
@@ -98,7 +114,8 @@ public class RepositoryUtils {
             if (field.getGenericType() instanceof ParameterizedType paramType) {
                 Type[] typeArguments = paramType.getActualTypeArguments();
                 if (typeArguments.length == 1 && typeArguments[0] instanceof Class<?> parametrizedClass) {
-                    return Iterable.class.isAssignableFrom(field.getType()) && parametrizedClass.isAnnotationPresent(Entity.class);
+                    return Iterable.class.isAssignableFrom(field.getType())
+                            && parametrizedClass.isAnnotationPresent(Entity.class);
                 }
             }
         } catch (NoSuchFieldException _) {

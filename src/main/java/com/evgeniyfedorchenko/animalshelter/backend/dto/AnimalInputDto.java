@@ -21,10 +21,4 @@ public class AnimalInputDto {
     @NotNull(message = "Animal's 'isAdult' should not be null")
     private boolean adult;
 
-//    Когда добавляем в приют новое животное - у него еще обычно нет усыновителя
-//    @Nullable
-//    @Positive(message = "Adopter's id must be positive")
-//    private Long adopterId;
-
-
 }

@@ -15,8 +15,8 @@ import java.io.Serializable;
 import java.util.Optional;
 
 /**
- * A class representing a bot object registered and configured
- * with a private token.Allows you to interact with Telegram servers
+ * Класс, представляющий объект бота, зарегистрированный и настроенный с помощью
+ * приватного токена. Позволяет взаимодействовать с серверами Telegram
  */
 @Slf4j
 @Component
@@ -36,7 +36,9 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     /**
-     * A method for receiving messages directly from the Telegram servers
+     * Метод получения сообщений непосредственно с серверов Telegram, а так же их маршрутизации по методам обработки
+     *
+     * @param update корневой объект, содержащий всю информацию о пришедшем обновлении
      */
     @Override
     public void onUpdateReceived(Update update) {
@@ -69,9 +71,11 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     /**
-     * A method for sending messages directly to the Telegram servers
-     * In case of an exception, it will be logged as {@code TelegramApiException was thrown. Cause: ex.getMessage()}
-     * @param messToSend @NotNull The object of the message ready to be sent
+     * Метод для непосредственной оправки сообщения на сервера Telegram. В случае ошибки отправки исключение
+     * логируется как {@code TelegramApiException was thrown. Cause: ex.getMessage()} и подавляется
+     *
+     * @param messToSend {@code @NotNull} Объект сообщения, готового к отправке
+     * @return true, если сообщение было успешно отправлено, иначе false
      */
     public boolean send(@NotNull BotApiMethod<? extends Serializable> messToSend) {
 

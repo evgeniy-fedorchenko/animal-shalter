@@ -5,16 +5,16 @@ import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageUtil
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 /**
- * A common interface for bot commands. Designed to work with such commands.
- * All commands that are present in the beta should extend this interface.
+ * Общий интерфейс для команд ботов. Разработан для работы с такими командами.
+ * Все команды, которые присутствуют в бета-версии, должны реализовывать этот интерфейс.
  */
 public interface Command {
 
     /**
-     * A method that executes the logic embedded in the bot-command and generates a response message.
-     * Designed to send a <b>new</b> message to the corresponding chat
-     * @param chatId Id of the chat for which the returned object will be created
-     * @return Ready object for sending from app
+     * Метод, который выполняет логику, заложенную в bot-команду, и генерирует ответное сообщение.
+     * Предназначен для отправки <b>нового</b> сообщения в соответствующий чат
+     * @param chatId Id чата, для которого будет создан возвращаемый объект
+     * @return готовый объект для отправки из приложения
      *
      * @see MessageUtils#applyCommand(MessageModel)
      */

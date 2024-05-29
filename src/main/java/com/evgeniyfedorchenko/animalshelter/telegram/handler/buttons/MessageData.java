@@ -5,7 +5,7 @@ import lombok.Getter;
 
 
 /**
- * The enumeration class containing all the information needed for a message that can be sent
+ * Класс перечисления, содержащий всю информацию, необходимую для отправки сообщения
  */
 @Getter
 public enum MessageData {
@@ -172,14 +172,14 @@ public enum MessageData {
 
 
     /**
-     * The text of the callback, which can be added to the button so that when it is pressed
-     * it can be intercepted, and thus it becomes clear which button the user pressed in Telegram messenger.
-     * It should represent the name of the Spring's bean that will handle the corresponding button
+     * Текст обратного вызова, который можно добавить к кнопке, чтобы при нажатии
+     * на нее можно было перехватить, и, таким образом, стало понятно, какую кнопку пользователь нажал в Telegram.
+     * Это должно быть название компонента Spring, который будет обрабатывать соответствующую кнопку
      */
     private final String callbackData;
 
     /**
-     * The text of the message itself, which can be sent via the telegram-bot to the user
+     * Текст самого сообщения, которое может быть отправлено пользователю с помощью telegram-бота
      */
     private final String answer;
 

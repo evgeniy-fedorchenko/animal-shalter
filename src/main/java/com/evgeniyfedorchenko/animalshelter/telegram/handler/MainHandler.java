@@ -3,6 +3,8 @@ package com.evgeniyfedorchenko.animalshelter.telegram.handler;
 import com.evgeniyfedorchenko.animalshelter.backend.services.TelegramService;
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.Callback;
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.commands.Command;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -19,32 +21,25 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * The main handler of messages from the bot's Telegrams. Contains methods
- * for handling all possible scenarios provided by the application logic
+ * Основной обработчик сообщений из Телеграмм-бота. Содержит методы
+ * для обработки всех возможных сценариев, предусмотренных логикой приложения
  */
 
-//@AllArgsConstructor
+@Slf4j
+@AllArgsConstructor
 @Component
 public class MainHandler {
 
     private final ApplicationContext applicationContext;
     private final TelegramService telegramService;
 
-    public MainHandler(ApplicationContext applicationContext,
-                       TelegramService telegramService) {
-        this.applicationContext = applicationContext;
-        this.telegramService = telegramService;
-    }
-
-
-// FIXME 25.05.2024 20:22 - поправить джавадок
     /**
-     * A method for processing <b>commands</b> sent from a Telegram bot. The method
-     * searches for registered implementations of {@link Command} and matches them with the message text
-     * @param message Object of type {@code Message} for processing
-     * @return A ready-made message object to send via Telegram bot
+     * Метод, обрабатывающий объекты {@code Command} полученные от Телеграм-бота. Метод ищет зарегистрированные
+     * в ApplicationContext имплементации интерфейса {@link Command} и выполняет логику в соответствии с командой
+     *
+     * @param update Объект для обработки, полученный от Телеграм-бота
+     * @return Сообщение, готовое к отправке с помощью Телеграм-бота
      */
-
     public SendMessage handleCommands(Update update) {
 
         Message message = update.getMessage();
@@ -58,22 +53,20 @@ public class MainHandler {
                 : command.apply(message.getChatId());
     }
 
-    // FIXME 25.05.2024 20:22 - поправить джавадок
 
     /**
-     * A method for processing <b>callbacks</b> sent from a Telegram bot. The method
-     * searches for registered implementations of {@link Callback} and matches them with the message text
+     * Метод, обрабатывающий объекты {@code Callback} полученные от Телеграм-бота. Метод ищет зарегистрированные
+     * в ApplicationContext имплементации интерфейса {@link Callback} и выполняет логику в соответствии с командой
      *
-     * @param callbackQuery Object of {@code CallbackQuery} for processing
-     * @return This object does not send a new message, but only modifies an existing
-     * one containing {@code this.callbackQuery.getMessage().getMessageId()}
+     * @param update Объект, полученный от Телеграм-бота, для обработки и выполнения логики на основе его содержания
+     * @return Этот объект является не новым сообщением, а изменением другого сообщения, содержащего идентификатор
+     * {@code this.callbackQuery.getMessage().getMessageId()}
      */
     public EditMessageText handleCallbacks(Update update) {
 
         Map<String, Callback> callbacksMap = applicationContext.getBeansOfType(Callback.class);
 
         CallbackQuery callbackQuery = update.getCallbackQuery();
-
         Callback callback = callbacksMap.get(callbackQuery.getData());
         Long chatId = callbackQuery.getMessage().getChatId();
 
@@ -107,7 +100,18 @@ public class MainHandler {
             return new SendMessage(chatId.toString(), text);
         }
     }
-  
+
+
+    /**
+     * Метод для получения фотографии от пользователя (нужно для функционала получения отчета). Обычно это сообщение
+     * не содержит текста, а только фотографию. После попадания в метод отсюда сразу же возвращается экземпляр
+     * {@code CompletableFuture<SendMessage>}, а выполнение метода продолжается асинхронно. После выбора самого
+     * качественного изображения и создания объекта SendMessage - он сразу же помещается в главный поток в ушедший объект
+     * {@code CompletableFuture<SendMessage>} и становится доступен. А сохранение самой фотки происходит в том же
+     * асинхронном потоке, но его уже никто не ждет
+     * @param message Сообщение, из которого нужно достать фотографию
+     * @return Экземпляр CompletableFuture<SendMessage> внутри которого будет помещен целевой объект
+     */
     @Async
     public CompletableFuture<SendMessage> savePhoto(Message message) {
 //        TelegramBot telegramBot = applicationContext.getBean("TelegramBot", TelegramBot.class);
@@ -118,9 +122,9 @@ public class MainHandler {
                         photo1.getWidth() * photo1.getHeight()))
                 .orElseThrow();
 
-        CompletableFuture<SendMessage> future = CompletableFuture.supplyAsync(() ->
-                new SendMessage(String.valueOf(message.getChatId()), "photo saved") // TODO 28.05.2024 21:10 - заменить текст
-        );
+        CompletableFuture<SendMessage> future = CompletableFuture.supplyAsync(() -> {
+            return new SendMessage(String.valueOf(message.getChatId()), "photo saved"); // TODO 28.05.2024 21:10 - заменить текст
+        });
 
         future.thenAcceptAsync(_ -> telegramService.savePhoto(largestPhoto, message.getChatId()));
         return future;
