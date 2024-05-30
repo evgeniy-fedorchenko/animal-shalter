@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +33,8 @@ public class ReportController {
     @GetUnverifiedReportsDocumentation
     @GetMapping
     public CompletableFuture<List<ReportOutputDto>> getUnverifiedReports(
+//    public List<ReportOutputDto> getUnverifiedReports(
+
             @Positive(message = "Limit of reports must be positive")
             @Parameter(description = "The requested number of reports to verify them")
             @RequestParam(required = false, defaultValue = "10") int limit) {
@@ -58,8 +59,8 @@ public class ReportController {
             @Parameter(description = "Id of the  low-quality report", example = "1")
             @RequestParam long reportId) {
         return reportService.sendMessageAboutBadReport(reportId)
-                ? ResponseEntity.badRequest().build()
-                : ResponseEntity.ok().build();
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.badRequest().build();
     }
 
     @GetPhotoDocumentation
@@ -69,20 +70,10 @@ public class ReportController {
                                            @PathVariable Long id) {
         return reportService.getPhoto(id)
                 .map(report -> ResponseEntity.status(HttpStatus.OK)
-                        .contentLength(report.getPhotoData().length)
-                        .contentType(MediaType.valueOf(MediaType.IMAGE_PNG_VALUE))   // Пока поставим заглушку
-                        .body(report.getPhotoData()))
+                        .contentLength(report.getFirst().length)
+                        .contentType(report.getSecond())
+                        .body(report.getFirst()))
 
                 .orElseGet(() -> ResponseEntity.of(Optional.empty()));
     }
 }
-
-/*
- * Эндпоинты для операций "Create", "Update" и "Delete" отсутствуют, потому что волонтером не разрешено создавать,
- * редактировать или удалять отчеты. Эти отчеты создаются через телеграм-бота от имени пользователей в тот момент, когда
- * пользователи их присылают. Волонтеры через это API могут только просматривать эти отчеты и отправлять сообщения,
- * что отчет недостаточно хорош (эндпоинт GET reports/send-warning).
- *
- * После успешного прохождения адоптации отчеты удаляются автоматически за ненадобностью (ровно как и само животное,
- * которое больше не числится в приюте)
- */

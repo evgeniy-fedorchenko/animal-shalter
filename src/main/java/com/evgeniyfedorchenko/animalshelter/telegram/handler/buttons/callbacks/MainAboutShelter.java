@@ -25,7 +25,6 @@ public class MainAboutShelter implements Callback {
         keyboardData.put("Назад",                         START.getCallbackData());
 
         MessageUtils messageUtils = new MessageUtils();
-//        MessageModel messageModel = new MessageModel(chatId, messageId, MAIN_ABOUT_SHELTER, keyboardData);
         MessageModel messageModel = MessageModel.builder()
                 .chatId(chatId)
                 .messageId(messageId)

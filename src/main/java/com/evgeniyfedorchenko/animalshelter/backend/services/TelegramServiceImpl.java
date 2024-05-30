@@ -1,29 +1,55 @@
 package com.evgeniyfedorchenko.animalshelter.backend.services;
 
-import com.evgeniyfedorchenko.animalshelter.telegram.listener.TelegramBot;
-import lombok.AllArgsConstructor;
+import com.evgeniyfedorchenko.animalshelter.telegram.listener.TelegramExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 @Slf4j
-@AllArgsConstructor
 @Service
 public class TelegramServiceImpl implements TelegramService {
 
-    private final TelegramBot telegramBot;
+    private final TelegramExecutor telegramExecutor;
+
+    public TelegramServiceImpl(TelegramExecutor telegramExecutor) {
+        this.telegramExecutor = telegramExecutor;
+    }
 
     @Override
     public boolean sendMessage(long chatId, String message) {
-
         SendMessage sendMessage = new SendMessage(String.valueOf(chatId), message);
+        return telegramExecutor.send(sendMessage);
+    }
+
+    @Override
+    public void savePhoto(URL url, Long chatId) {
+
         try {
-            telegramBot.execute(sendMessage);
-        } catch (TelegramApiException ex) {
-            log.error("Filed to send message to adopter about his bad report. Cause: {}", ex.getMessage());
-//            todo придумать как вернуть тут bad_gateway
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            InputStream is = url.openStream();
+            try (baos; is) {
+
+                byte[] data = new byte[4096];
+                int nRead;
+                while ((nRead = is.read(data, 0, data.length)) != -1) {
+                    baos.write(data, 0, nRead);
+                }
+                baos.flush();
+            }
+
+            // FIXME 31.05.2024 00:43
+//        } catch (TelegramApiException ex) {
+//            log.error("Cannot invoke 'AbsSender.execute()'. Cause: {}", ex.getMessage());
+        } catch (MalformedURLException ex) {
+            log.error("Malformed URL. Cause: {}", ex.getMessage());
+        } catch (IOException ex) {
+            log.error("Cannot download file. Cause: {}", ex.getMessage());
         }
-        return false;
     }
 }

@@ -8,6 +8,7 @@ import com.evgeniyfedorchenko.animalshelter.backend.entities.Animal;
 import com.evgeniyfedorchenko.animalshelter.backend.services.AnimalService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletionException;
 
 @Tag(name = "Animals", description = "Controller for work with animals: adding, search, assigned to adopters and deleting ")
 @Validated
@@ -75,10 +77,13 @@ public class AnimalController {
             @Parameter(description = "Existing adopter's id that should be assigned to the specified animal", example = "1")
             @Positive(message = "Adopter's id must be positive")
             @RequestParam long adopterId) {
-
-        return animalService.assignAnimalToAdopter(adopterId, animalId)
-                ? ResponseEntity.ok().build()
-                : ResponseEntity.badRequest().build();
+        try {
+            return animalService.assignAnimalToAdopter(animalId, adopterId).join()
+                    ? ResponseEntity.ok().build()
+                    : ResponseEntity.badRequest().build();
+        } catch (CompletionException | EntityNotFoundException _) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteAnimalDocumentation

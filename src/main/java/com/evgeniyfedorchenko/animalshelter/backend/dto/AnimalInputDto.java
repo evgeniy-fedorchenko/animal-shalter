@@ -2,7 +2,6 @@ package com.evgeniyfedorchenko.animalshelter.backend.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,9 +19,6 @@ public class AnimalInputDto {
     private String name;
 
     @NotNull(message = "Animal's 'isAdult' should not be null")
-    private boolean isAdult;
-
-    @Positive(message = "Adopter's id must be positive")
-    private long adopterId;
+    private boolean adult;
 
 }

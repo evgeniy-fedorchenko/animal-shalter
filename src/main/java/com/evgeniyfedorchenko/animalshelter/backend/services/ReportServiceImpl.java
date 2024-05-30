@@ -7,6 +7,8 @@ import com.evgeniyfedorchenko.animalshelter.backend.repositories.ReportRepositor
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.util.Pair;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +33,8 @@ public class ReportServiceImpl implements ReportService {
                 reportRepository.findOldestUnviewedReports(PageRequest.of(0, limit)).stream()
                 .map(reportMapper::toDto)
                 .toList());
-        futureList.thenAccept(list -> {
+      
+        futureList.thenAcceptAsync(list -> {
             List<Long> idsForUpdate = list.stream().map(ReportOutputDto::getId).toList();
             reportRepository.updateReportsViewedStatus(idsForUpdate);
         });
@@ -58,7 +61,8 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public Optional<Report> getPhoto(Long id) {
-        return reportRepository.findById(id);
+    public Optional<Pair<byte[], MediaType>> getPhoto(Long id) {
+        return reportRepository.findById(id)
+                .map(report -> Pair.of(report.getPhotoData(), MediaType.parseMediaType(report.getMediaType())));
     }
 }

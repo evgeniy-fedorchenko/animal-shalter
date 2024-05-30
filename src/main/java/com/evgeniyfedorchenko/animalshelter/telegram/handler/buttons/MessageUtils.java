@@ -7,7 +7,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -15,17 +14,11 @@ import java.util.stream.IntStream;
 @Slf4j
 public class MessageUtils {
 
-    public static final Map<String, MessageData> COMPLIANCE_TABLE = new HashMap<>(Map.of(
-//        todo связать тут названия бинов кнопок и их MessageData
-//         И когда нужно с помощью одного получить другое - обращаться сюда
-    ));
-
-
     /**
-     * A method for making a callback. Converting a {@code MessageModel} object into a {@code EditMessageText} object.
-     * The map with the keyboard data will also be converted to {@code InlineKeyboardMarkup} if exists
-     * @param messageModel The object with the original message data
-     * @return Ready object to send to Telegram bot
+     * Метод, выполняющий колбеки. Собирает из переданного объекта {@code MessageModel} объект  {@code EditMessageText}
+     * Карта с данными клавиатуры также будет преобразована в {@code InlineKeyboardMarkup}, если она существует
+     * @param messageModel Объект с данными для создания сообщения
+     * @return Объект, готовый к отправке через Телеграм-бота
      */
     public EditMessageText applyCallback(MessageModel messageModel) {
 
@@ -41,10 +34,10 @@ public class MessageUtils {
     }
 
     /**
-     * A method for making a callback. Converting a {@code MessageModel} object into a {@code SendMessage} object.
-     * The map with the keyboard data will also be converted to {@code InlineKeyboardMarkup} if exists
-     * @param messageModel The object with the original message data
-     * @return Ready object to send to Telegram bot
+     * Метод, выполняющий команды. Собирает из переданного объекта {@code MessageModel} объект  {@code SendMessage}
+     * Карта с данными клавиатуры также будет преобразована в {@code InlineKeyboardMarkup}, если она существует
+     * @param messageModel Объект с данными для создания сообщения
+     * @return Объект, готовый к отправке через Телеграм-бота
      */
     public SendMessage applyCommand(MessageModel messageModel) {
 

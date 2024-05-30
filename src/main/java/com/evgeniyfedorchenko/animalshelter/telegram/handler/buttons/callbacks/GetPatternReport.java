@@ -22,7 +22,6 @@ public class GetPatternReport implements Callback {
         keyboardData.put("Назад",             MAIN_REPORT_MENU.getCallbackData());
 
         MessageUtils messageUtils = new MessageUtils();
-//        MessageModel messageModel = new MessageModel(chatId, messageId, GET_PATTERN_REPORT, keyboardData);
         MessageModel messageModel = MessageModel.builder()
                 .chatId(chatId)
                 .messageId(messageId)

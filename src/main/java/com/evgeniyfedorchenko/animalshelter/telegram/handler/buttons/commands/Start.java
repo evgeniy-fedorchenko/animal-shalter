@@ -23,10 +23,9 @@ public class Start implements Command {
         keyboardData.put("Прислать отчет о питомце",     MAIN_REPORT_MENU.getCallbackData());
 
         MessageUtils messageUtils = new MessageUtils();
-//        MessageModel messageModel = new MessageModel(chatId, START, keyboardData);
         MessageModel messageModel = MessageModel.builder()
                 .chatId(chatId)
-                .messageData(VOLUNTEER)
+                .messageData(START)
                 .keyboardData(keyboardData)
                 .build();
 

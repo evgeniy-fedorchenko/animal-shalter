@@ -5,41 +5,41 @@ import jakarta.annotation.Nullable;
 import lombok.Builder;
 import lombok.Getter;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Map;
 
 /**
- * The class represents the initial model for accumulating all the necessary parameters
- * and forming a {@link SendMessage} object that can be sent directly via Telegram
+ * Класс представляет собой исходную модель для накопления всех необходимых параметров
+ * и формирования объекта {@link SendMessage}, который может быть отправлен напрямую через Telegram
  *
- * @apiNote To convert a model into a {@code SendMessage} message object,
- * use {@link MessageUtils#applyCommand(MessageModel)} or {@link MessageUtils#applyCallback(MessageModel)}
+ * @apiNote Чтобы преобразовать модель в объект сообщения {@code SendMessage},
+ * используйте {@link MessageUtils#applyCommand(MessageModel)} или {@link MessageUtils#applyCallback(MessageModel)}
  */
 @Getter
 @Builder
 public class MessageModel {
 
     /**
-     * Id of the chat for whom the future message is intended
+     * Идентификатор чата, для которого предназначено будущее сообщение
      */
     private final Long chatId;
 
     /**
-     * Id of the message for whom the future message is intended
+     * Идентификатор сообщения, для которого предназначено будущее сообщение
      */
     private final Integer messageId;
 
     /**
-     * An object of the enumeration class from which the text of the message will be taken for future sending
+     * Объект класса enumeration, из которого будет взят текст сообщения для последующей отправки
      */
     private final MessageData messageData;
 
     /**
-     * The Map that will be converted into a keyboard object for the message being sent.<br>
-     * <b>Key</b> - is the text that will be displayed on the button.<br>
-     * <b>Value</b> -  is the  string id of the call that can be caught in the {@link MainHandler#handleCallbacks(CallbackQuery)}.
-     * It must match the name of the Spring's bean that sends this button
+     * Карта, которая будет преобразована в объект клавиатуры для отправляемого сообщения.<br>
+     * <b>Key</b> - Текст, который будет отображаться на кнопке<br>
+     * <b>Value</b> - Строковый идентификатор вызова, который может быть перехвачен в {@link MainHandler#handleCallbacks(Update)}.
+     * Оно должно совпадать с именем компонента источника, который отправляет эту кнопку
      */
     @Nullable
     public final Map<String, String> keyboardData;
