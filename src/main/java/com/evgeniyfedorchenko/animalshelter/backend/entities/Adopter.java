@@ -45,7 +45,7 @@ public class Adopter {
 
     @Nullable
     @OneToMany(mappedBy = "adopter", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<Report> reports;
+    private List<Report> reports = new ArrayList<>();
 
     @Nullable
     @OneToOne
@@ -63,9 +63,6 @@ public class Adopter {
      */
     public Adopter removeStudent(Report report) {
         report.setAdopter(null);
-        if (this.reports == null) {
-            reports = new ArrayList<>();
-        }
         this.reports.remove(report);
         return this;
     }
@@ -79,9 +76,6 @@ public class Adopter {
      * переданный в параметре объект {@code Report}
      */
     public Adopter addReport(Report report) {
-        if (reports == null) {
-            reports = new ArrayList<>();
-        }
         report.setAdopter(this);
         this.reports.add(report);
         return this;

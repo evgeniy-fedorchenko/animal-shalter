@@ -6,9 +6,9 @@ import com.evgeniyfedorchenko.animalshelter.backend.mappers.ReportMapper;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.ReportRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tika.Tika;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.util.Pair;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +37,6 @@ public class ReportServiceImpl implements ReportService {
         futureList.thenAcceptAsync(list -> {
             List<Long> idsForUpdate = list.stream().map(ReportOutputDto::getId).toList();
             reportRepository.updateReportsViewedStatus(idsForUpdate);
-            reportRepository.flush();
         });
         return futureList;
     }
@@ -62,13 +61,8 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public Optional<Pair<byte[], String>> getPhoto(Long id) {
-        Optional<Report> reportOpt = reportRepository.findById(id);
-
-        if (reportOpt.isEmpty()) {
-            return Optional.empty();
-        }
-        byte[] photoData = reportOpt.get().getPhotoData();
-        return Optional.of(Pair.of(photoData, new Tika().detect(photoData)));
+    public Optional<Pair<byte[], MediaType>> getPhoto(Long id) {
+        return reportRepository.findById(id)
+                .map(report -> Pair.of(report.getPhotoData(), MediaType.parseMediaType(report.getMediaType())));
     }
 }

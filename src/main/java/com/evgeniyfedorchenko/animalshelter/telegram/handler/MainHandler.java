@@ -3,6 +3,7 @@ package com.evgeniyfedorchenko.animalshelter.telegram.handler;
 import com.evgeniyfedorchenko.animalshelter.backend.services.TelegramService;
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.Callback;
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.commands.Command;
+import com.evgeniyfedorchenko.animalshelter.telegram.listener.TelegramExecutor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -17,6 +18,7 @@ import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.Serializable;
+import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -32,6 +34,7 @@ public class MainHandler {
 
     private final ApplicationContext applicationContext;
     private final TelegramService telegramService;
+    private final TelegramExecutor telegramExecutor;
 
     /**
      * Метод, обрабатывающий объекты {@code Command} полученные от Телеграм-бота. Метод ищет зарегистрированные
@@ -62,7 +65,7 @@ public class MainHandler {
      * @return Этот объект является не новым сообщением, а изменением другого сообщения, содержащего идентификатор
      * {@code this.callbackQuery.getMessage().getMessageId()}
      */
-    public EditMessageText handleCallbacks(Update update) {
+    public BotApiMethod<? extends Serializable> handleCallbacks(Update update) {
 
         Map<String, Callback> callbacksMap = applicationContext.getBeansOfType(Callback.class);
 
@@ -75,7 +78,7 @@ public class MainHandler {
             return callback.apply(chatId, messageId);
 
         } else {
-            return (EditMessageText) applyUnknownUserAction(update, chatId);
+            return applyUnknownUserAction(update, chatId);
         }
     }
 
@@ -109,12 +112,12 @@ public class MainHandler {
      * качественного изображения и создания объекта SendMessage - он сразу же помещается в главный поток в ушедший объект
      * {@code CompletableFuture<SendMessage>} и становится доступен. А сохранение самой фотки происходит в том же
      * асинхронном потоке, но его уже никто не ждет
+     *
      * @param message Сообщение, из которого нужно достать фотографию
      * @return Экземпляр CompletableFuture<SendMessage> внутри которого будет помещен целевой объект
      */
     @Async
     public CompletableFuture<SendMessage> savePhoto(Message message) {
-//        TelegramBot telegramBot = applicationContext.getBean("TelegramBot", TelegramBot.class);
 
         PhotoSize largestPhoto = message.getPhoto().stream()
                 .max((photo1, photo2) -> Integer.compare(
@@ -126,7 +129,10 @@ public class MainHandler {
             return new SendMessage(String.valueOf(message.getChatId()), "photo saved"); // TODO 28.05.2024 21:10 - заменить текст
         });
 
-        future.thenAcceptAsync(_ -> telegramService.savePhoto(largestPhoto, message.getChatId()));
+        future.thenAcceptAsync(_ -> {
+            URL photoUrl = telegramExecutor.getPhotoUrl(largestPhoto);
+            telegramService.savePhoto(photoUrl, message.getChatId());
+        });
         return future;
     }
 }

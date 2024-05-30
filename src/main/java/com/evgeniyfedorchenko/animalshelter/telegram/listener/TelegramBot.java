@@ -1,7 +1,6 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.listener;
 
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.MainHandler;
-import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -9,7 +8,6 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.Serializable;
 import java.util.Optional;
@@ -23,11 +21,14 @@ import java.util.Optional;
 public class TelegramBot extends TelegramLongPollingBot {
 
     private final MainHandler mainHandler;
+    private final TelegramExecutor telegramExecutor;
 
     public TelegramBot(@Value("${telegram.bot.token}") String botToken,
-                       MainHandler mainHandler) {
+                       MainHandler mainHandler,
+                       TelegramExecutor telegramExecutor) {
         super(botToken);
         this.mainHandler = mainHandler;
+        this.telegramExecutor = telegramExecutor;
     }
 
     @Override
@@ -65,26 +66,8 @@ public class TelegramBot extends TelegramLongPollingBot {
                 messToSend = mainHandler.handleCallbacks(update);
             }
 
-            Optional.ofNullable(messToSend).ifPresent(this::send);
+            Optional.ofNullable(messToSend).ifPresent(telegramExecutor::send);
             log.info("Processing has successfully ENDED for updateID {}", update.getUpdateId());
-        }
-    }
-
-    /**
-     * Метод для непосредственной оправки сообщения на сервера Telegram. В случае ошибки отправки исключение
-     * логируется как {@code TelegramApiException was thrown. Cause: ex.getMessage()} и подавляется
-     *
-     * @param messToSend {@code @NotNull} Объект сообщения, готового к отправке
-     * @return true, если сообщение было успешно отправлено, иначе false
-     */
-    public boolean send(@NotNull BotApiMethod<? extends Serializable> messToSend) {
-
-        try {
-            execute(messToSend);
-            return true;
-        } catch (TelegramApiException ex) {
-            log.error("TelegramApiException was thrown. Cause: {}", ex.getMessage());
-            return false;
         }
     }
 }

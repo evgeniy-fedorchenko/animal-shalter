@@ -8,5 +8,6 @@
     <include file="create-adopter-table.xml" relativeToChangelogFile="true"/>
     <include file="create-animal-table.xml" relativeToChangelogFile="true"/>
     <include file="create-report-table.xml" relativeToChangelogFile="true"/>
+    <include file="add-media-type-column-to-reports.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

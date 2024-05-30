@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -72,7 +71,7 @@ public class ReportController {
         return reportService.getPhoto(id)
                 .map(report -> ResponseEntity.status(HttpStatus.OK)
                         .contentLength(report.getFirst().length)
-                        .contentType(MediaType.parseMediaType(report.getSecond()))
+                        .contentType(report.getSecond())
                         .body(report.getFirst()))
 
                 .orElseGet(() -> ResponseEntity.of(Optional.empty()));

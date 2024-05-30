@@ -44,6 +44,9 @@ public class Report {
     @Column(columnDefinition = "oid")
     private byte[] photoData;
 
+    @NotNull
+    private String mediaType;
+
     @NotNull(message = "Report's field 'sendingAt' should not be null")
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

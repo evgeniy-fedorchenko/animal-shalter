@@ -1,11 +1,11 @@
 package com.evgeniyfedorchenko.animalshelter.backend.services;
 
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import java.net.URL;
 
 public interface TelegramService {
 
     boolean sendMessage(long chatId, String message);
 
-    void savePhoto(PhotoSize photo, Long chatId);
+    void savePhoto(URL url, Long chatId);
 
 }
