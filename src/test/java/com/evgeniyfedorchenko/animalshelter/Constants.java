@@ -66,6 +66,7 @@ public class Constants {
                 .forEach(animal -> {
                     animal.setName(FAKER.letterify("animalName?????"));
                     animal.setAdult(FAKER.random().nextBoolean());
+                    animal.setType(FAKER.random().nextBoolean() ? Animal.Type.CAT : Animal.Type.DOG);
                     animal.setAdopter(null);
                 });
     }

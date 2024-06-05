@@ -1,5 +1,6 @@
 package com.evgeniyfedorchenko.animalshelter.backend.dto;
 
+import com.evgeniyfedorchenko.animalshelter.backend.entities.Animal;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -20,5 +21,8 @@ public class AnimalInputDto {
 
     @NotNull(message = "Animal's 'isAdult' should not be null")
     private boolean adult;
+
+    @NotNull(message = "Any animal must have a type")
+    private Animal.Type type;
 
 }

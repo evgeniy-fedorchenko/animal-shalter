@@ -12,6 +12,7 @@ import com.evgeniyfedorchenko.animalshelter.backend.repositories.RepositoryUtils
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +29,7 @@ public class AdopterServiceImpl implements AdopterService {
     private final RepositoryUtils repositoryUtils;
 
     @Override
+    @Transactional
     public Optional<AdopterOutputDto> addAdopter(AdopterInputDto adopterInputDto) {
 
         Adopter adopter = new Adopter();
@@ -51,6 +53,7 @@ public class AdopterServiceImpl implements AdopterService {
     }
 
     @Override
+    @Transactional
     public Optional<AdopterOutputDto> getAdopter(long id) {
         return adopterRepository.findById(id).map(adopterMapper::toOutputDto);
     }
@@ -69,6 +72,7 @@ public class AdopterServiceImpl implements AdopterService {
     }
 
     @Override
+    @Transactional
     public boolean deleteAdopter(long id) {
         Optional<Adopter> adopterOpt = adopterRepository.findById(id);
         if (adopterOpt.isEmpty()) {
@@ -82,7 +86,7 @@ public class AdopterServiceImpl implements AdopterService {
     private String validatePhoneNumber(String phoneNumber) {
 
 //        Regexp: Заменяем на пустую строку все пробельные символы, круглые скобки и знак минус
-        String replaced = phoneNumber.replaceAll("[\\s()\\-]+", "");
+        String replaced = phoneNumber.replaceAll("[\\s()-]+", "");
 
           /* Возможны только три случая - "+79...", "79..." и "89...", все остальное не пройдет
           валидацию в контроллере. В любом случае приводим номер к виду "79..." */

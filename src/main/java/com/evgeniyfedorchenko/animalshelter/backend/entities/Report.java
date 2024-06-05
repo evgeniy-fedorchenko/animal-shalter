@@ -40,11 +40,12 @@ public class Report {
     @Size(max = 500, message = "Report's diet length must be less than 500")
     private String changeBehavior;
 
+    @Nullable
     @Lob
     @Column(columnDefinition = "oid")
     private byte[] photoData;
 
-    @NotNull
+    @Nullable
     private String mediaType;
 
     @NotNull(message = "Report's field 'sendingAt' should not be null")
@@ -63,8 +64,8 @@ public class Report {
     @JoinColumn(name = "adopter_id")
     private Adopter adopter;
 
-    public boolean hasPhoto() {
-        return photoData != null;
+    public boolean hasPhotoDataAndMediaType() {
+        return photoData != null && photoData.length > 0 && mediaType != null;
     }
 
     @Override

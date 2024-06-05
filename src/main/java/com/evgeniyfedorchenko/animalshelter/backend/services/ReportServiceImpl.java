@@ -11,6 +11,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,11 +30,11 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public CompletableFuture<List<ReportOutputDto>> getUnverifiedReports(int limit) {
 
-        CompletableFuture<List<ReportOutputDto>> futureList = CompletableFuture.supplyAsync(() -> 
+        CompletableFuture<List<ReportOutputDto>> futureList = CompletableFuture.supplyAsync(() ->
                 reportRepository.findOldestUnviewedReports(PageRequest.of(0, limit)).stream()
-                .map(reportMapper::toDto)
-                .toList());
-      
+                        .map(reportMapper::toDto)
+                        .toList());
+
         futureList.thenAcceptAsync(list -> {
             List<Long> idsForUpdate = list.stream().map(ReportOutputDto::getId).toList();
             reportRepository.updateReportsViewedStatus(idsForUpdate);
@@ -42,12 +43,14 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<ReportOutputDto> getReportById(long id) {
         return reportRepository.findById(id)
                 .map(reportMapper::toDto);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean sendMessageAboutBadReport(long reportId) {
         Optional<Report> reportOpt = reportRepository.findById(reportId);
         if (reportOpt.isEmpty()) {
@@ -61,8 +64,12 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Pair<byte[], MediaType>> getPhoto(Long id) {
-        return reportRepository.findById(id)
-                .map(report -> Pair.of(report.getPhotoData(), MediaType.parseMediaType(report.getMediaType())));
+        return reportRepository.findById(id).map(report ->
+                report.hasPhotoDataAndMediaType()
+                        ? Pair.of(report.getPhotoData(), MediaType.parseMediaType(report.getMediaType()))
+                        : null
+        );
     }
 }

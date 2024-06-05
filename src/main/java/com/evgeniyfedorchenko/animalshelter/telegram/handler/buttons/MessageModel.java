@@ -1,6 +1,7 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons;
 
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.MainHandler;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.Callback;
 import jakarta.annotation.Nullable;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,8 +27,10 @@ public class MessageModel {
     private final Long chatId;
 
     /**
-     * Идентификатор сообщения, для которого предназначено будущее сообщение
+     * Идентификатор сообщения, для которого предназначено будущее сообщение.
+     * Актуально для имплементаций {@link Callback}
      */
+    @Nullable
     private final Integer messageId;
 
     /**
@@ -42,6 +45,6 @@ public class MessageModel {
      * Оно должно совпадать с именем компонента источника, который отправляет эту кнопку
      */
     @Nullable
-    public final Map<String, String> keyboardData;
+    private final Map<String, String> keyboardData;
 
 }

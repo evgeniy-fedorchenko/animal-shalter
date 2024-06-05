@@ -1,6 +1,8 @@
 package com.evgeniyfedorchenko.animalshelter.backend.services;
 
+import com.evgeniyfedorchenko.animalshelter.backend.repositories.ReportRepository;
 import com.evgeniyfedorchenko.animalshelter.telegram.listener.TelegramExecutor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -8,18 +10,15 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class TelegramServiceImpl implements TelegramService {
 
     private final TelegramExecutor telegramExecutor;
-
-    public TelegramServiceImpl(TelegramExecutor telegramExecutor) {
-        this.telegramExecutor = telegramExecutor;
-    }
+    private final ReportRepository reportRepository;
 
     @Override
     public boolean sendMessage(long chatId, String message) {
@@ -30,26 +29,22 @@ public class TelegramServiceImpl implements TelegramService {
     @Override
     public void savePhoto(URL url, Long chatId) {
 
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            InputStream is = url.openStream();
-            try (baos; is) {
+        byte[] photoData;
+        try (
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                InputStream is = url.openStream()
+        ) {
 
-                byte[] data = new byte[4096];
-                int nRead;
-                while ((nRead = is.read(data, 0, data.length)) != -1) {
-                    baos.write(data, 0, nRead);
-                }
-                baos.flush();
+            byte[] data = new byte[4096];
+            int nRead;
+            while ((nRead = is.read(data, 0, data.length)) != -1) {
+                baos.write(data, 0, nRead);
             }
-
-            // FIXME 31.05.2024 00:43
-//        } catch (TelegramApiException ex) {
-//            log.error("Cannot invoke 'AbsSender.execute()'. Cause: {}", ex.getMessage());
-        } catch (MalformedURLException ex) {
-            log.error("Malformed URL. Cause: {}", ex.getMessage());
+            baos.flush();
+            photoData = baos.toByteArray();
         } catch (IOException ex) {
             log.error("Cannot download file. Cause: {}", ex.getMessage());
+            return;
         }
     }
 }
