@@ -78,8 +78,7 @@ public class Constants {
                     report.setHealth(FAKER.letterify("reportHealth?????"));
                     report.setChangeBehavior(FAKER.letterify("reportCB?????"));
                     report.setPhotoData(null);
-                    Instant instant = Instant.now();
-                    report.setSendingAt(instant);
+                    report.setSendingAt(Instant.now());
                     report.setVerified(FAKER.random().nextBoolean());
                     report.setAccepted(false);
                     report.setAdopter(null);

@@ -176,6 +176,7 @@ public class ReportControllerTest {
 
         Report randomReport = savedReports.get(random.nextInt(1, savedReports.size()));
         randomReport.setPhotoData(imageBytes);
+        randomReport.setMediaType(format.getMediaType());
         reportRepository.save(randomReport);
 
         ResponseEntity<byte[]> responseEntity = testRestTemplate.exchange(
@@ -191,7 +192,7 @@ public class ReportControllerTest {
         assertThat(responseEntity.getBody().length).isGreaterThan(0);
 
         assertThat(responseEntity.getHeaders().toSingleValueMap())
-                .containsEntry("Content-Type", format.getMediaType().toString())
+                .containsEntry("Content-Type", format.getMediaType())
                 .containsEntry("Content-Length", String.valueOf(imageBytes.length));
 
         assertThat(responseEntity.getBody()).isEqualTo(imageBytes);

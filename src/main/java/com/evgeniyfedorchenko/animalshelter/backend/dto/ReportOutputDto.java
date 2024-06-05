@@ -7,6 +7,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode
 @NoArgsConstructor
 public class ReportOutputDto {
 

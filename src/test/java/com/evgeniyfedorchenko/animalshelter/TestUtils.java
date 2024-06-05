@@ -5,6 +5,7 @@ import com.evgeniyfedorchenko.animalshelter.backend.dto.AdopterInputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AnimalInputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Adopter;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Animal;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -13,16 +14,23 @@ import lombok.Getter;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
+import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -35,14 +43,17 @@ public class TestUtils<E> {
     @PersistenceContext
     private EntityManager entityManager;
 
+
     @Getter
     @AllArgsConstructor
     public enum Format {
-        PNG("png", MediaType.IMAGE_PNG),
-        JPG("jpg", MediaType.IMAGE_JPEG);
+        //        ImageIO.write() не желает принимать "image/png", только "png"; аналогично с jpeg
+        PNG(MediaType.IMAGE_PNG_VALUE, "png"),
+        JPG(MediaType.IMAGE_JPEG_VALUE, "jpg");
 
-        private final String imageFormat;
-        private final MediaType mediaType;
+        private final String mediaType;
+        private final String mediaTypeForImageIO;
+
     }
 
     public AdopterInputDto toInputDto(Adopter adopter) {
@@ -62,6 +73,7 @@ public class TestUtils<E> {
 
         inputDto.setName(animal.getName());
         inputDto.setAdult(animal.isAdult());
+        inputDto.setType(animal.getType());
 
         return inputDto;
     }
@@ -99,7 +111,7 @@ public class TestUtils<E> {
             }
 
         } else {
-            queryBuilder.append("WHERE x." ).append(sortParam).append(" IS NOT NULL ");
+            queryBuilder.append("WHERE x.").append(sortParam).append(" IS NOT NULL ");
             if (sortOrder == SortOrder.DESC) {
                 queryBuilder.append("ORDER BY x.").append(sortParam).append(" DESC");
             } else {
@@ -144,7 +156,7 @@ public class TestUtils<E> {
         g2d.dispose();
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            ImageIO.write(image, format.getImageFormat(), baos);
+            ImageIO.write(image, format.getMediaTypeForImageIO(), baos);
             return baos.toByteArray();
 
         } catch (IOException ex) {
@@ -155,37 +167,23 @@ public class TestUtils<E> {
     /**
      * Метод возвращает случайно число от 1 до Long.MAX_VALUE,
      * которое не совпадает с айдишниками коллекции переданных сущностей
+     *
      * @param entityCollection коллекция сущностей для сравнения. Возвращаемое число
      *                         не будет равняться с id любой из этих сущностей
      * @return положительное число, не совпадающее ни с одним id переданных сущностей
      * @throws IllegalArgumentException если переданная коллекция параметризована классом неизвестной сущности
-     * @throws NullPointerException если переданная коллекция пуста или не инициализирована
+     * @throws NullPointerException     если переданная коллекция пуста или не инициализирована
      */
     public long getIdNonExistsIn(List<Object> entityCollection) {
-        /* Сначала просто хотел вернуть entityCollection.size() + 1, но потом понял, id могут быть любые, а не строго
-           по порядку. Да, в этом проекте id генерятся по порядку, но все же, лучше пусть будет более универсально */
 
         if (entityCollection == null || entityCollection.isEmpty()) {
             throw new NullPointerException("entityCollection is null or empty");
         }
 
-//        List<Long> existingIdx = switch (entityCollection) {
-//            case List<?> adopters when adopters.getFirst() instanceof Adopter ->
-//                new ArrayList<>((List<? extends Adopter>) adopters).stream().map(Adopter::getId).toList();
-//
-//            case List<?> animals when animals instanceof Animal ->
-//                    animals.stream().map(obj -> (Animal) obj).map(Animal::getId).toList();
-//
-//            case List<?> reports when reports.getFirst() instanceof Report ->
-//                    reports.stream().map(obj -> (Report) obj).map(Report::getId).toList();
-//
-//            default -> throw new IllegalStateException("Unexpected value: " + entityCollection);
-//        };
-
         if (!entityCollection.getFirst().getClass().isAnnotationPresent(Entity.class)) {
             throw new IllegalStateException("Unexpected value: " + entityCollection);
         }
-//        Дурацкие checked-исключения вообще не дружат со stream api :(
+
         List<Long> existingIds = entityCollection.stream()
                 .map(entity -> {
                     try {
@@ -201,5 +199,66 @@ public class TestUtils<E> {
             nonExistId = random.nextInt(1, Integer.MAX_VALUE);
         } while (existingIds.contains(nonExistId));
         return nonExistId;
+    }
+
+
+    /**
+     * Метод для получения объекта Update из файла json, находящегося в ресурсах. Если {@code withPhoto = true},
+     * то {@code isCommand} не имеет значения
+     * @param messText  Текст, который будет помещен в Update.getMessage().getText()
+     * @param isCommand Указывает, что это команда бота или нет. Если установлено в {@code true}, то помимо прочего
+     *                  из параметра {@code messText} будет сгенерирована соответствующая {@link MessageEntity}
+     *                  и помещена в массив {@code Update.getMessage().getEntities()}.
+     *                  Проверка на {@code isCommand} вернет {@code true}
+     * @param withPhoto Указывает должен присутствовать в сообщении {@code List<PhotoSize>}.
+     *                  Список в любом случае будет содержать один пустой объект
+     * @return Объект Update, настроенный по указанным параметрам
+     */
+    public Update getUpdateWithMessage(@Nullable String messText, boolean isCommand, boolean withPhoto) {
+
+        Update update;
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            String json = Files.readString(new ClassPathResource("test-message-update.json").getFile().toPath());
+            if (messText == null ) {
+                update = objectMapper.readValue(json, Update.class);
+                update.getMessage().setText(null);
+
+                if (withPhoto) {
+                    update.getMessage().setPhoto(List.of(new PhotoSize()));
+                    return update;
+                }
+                return update;
+            }
+            String replaced = json.replace("%toReplace%", messText);
+            update = objectMapper.readValue(replaced, Update.class);
+
+        } catch (IOException ex) {
+            throw new RuntimeException("Could not read test-message-update.json", ex);
+        }
+
+        /* Чтобы сработал метод Message.isCommand() нужно засетить
+           в update новую MessageEntity и указать что это "botCommand" */
+        if (!isCommand) {
+            return update;
+        }
+
+        MessageEntity botCommand = new MessageEntity("bot_command", 0, messText.length());
+        botCommand.setText(messText);
+        update.getMessage().setEntities(Collections.singletonList(botCommand));
+        return update;
+    }
+
+    public Update getUpdateWithCallback(String callbackData) {
+
+        try {
+            String json = Files.readString(new ClassPathResource("test-callback-update.json").getFile().toPath());
+            String replaced = json.replace("%toReplace%", callbackData);
+            return new ObjectMapper().readValue(replaced, Update.class);
+
+        } catch (IOException ex) {
+            throw new RuntimeException("Could not read test-message-update.json", ex);
+        }
     }
 }
