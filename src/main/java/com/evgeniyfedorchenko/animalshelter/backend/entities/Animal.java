@@ -31,6 +31,10 @@ public class Animal {
     @NotNull(message = "Animal's 'isAdult' should not be null")
     private boolean adult;
 
+    @Enumerated(EnumType.STRING)
+    @NotNull(message = "Any animal must have a type")
+    private Type type;
+
     @Nullable
     @OneToOne(mappedBy = "animal")
     private Adopter adopter;
@@ -47,5 +51,10 @@ public class Animal {
                 adult,
                 this.hasAdopter() ? adopter.getId() : "no adopter"
         );
+    }
+
+
+    public enum Type {
+        DOG, CAT
     }
 }

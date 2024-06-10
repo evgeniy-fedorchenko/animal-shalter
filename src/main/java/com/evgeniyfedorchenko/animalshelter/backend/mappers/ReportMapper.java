@@ -26,7 +26,7 @@ public class ReportMapper {
         reportOutputDto.setSendingAt(report.getSendingAt());
 
         reportOutputDto.setPhotoUrl(
-                report.hasPhoto()
+                report.hasPhotoDataAndMediaType()
                         ? generateUrl(String.valueOf(report.getId()))
                         : "no photo"
         );

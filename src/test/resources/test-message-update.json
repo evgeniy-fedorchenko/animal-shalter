@@ -1,0 +1,26 @@
+{
+  "update_id": 757841508,
+  "message": {
+    "from": {
+      "id": 123,
+      "is_bot": false,
+      "first_name": "Test-first_name",
+      "last_name": "Test-last_name",
+      "username": "Test-username",
+      "language_code": "en",
+      "is_premium": true
+    },
+    "text": "%toReplace%",
+    "entities": [
+    ],
+    "chat": {
+      "id": 123,
+      "type": "private",
+      "username": "Test-username",
+      "first_name": "Test-first_name",
+      "last_name": "Test-last_name"
+    },
+    "message_id": 62,
+    "date": 1714149014
+  }
+}

@@ -9,5 +9,6 @@
     <include file="create-animal-table.xml" relativeToChangelogFile="true"/>
     <include file="create-report-table.xml" relativeToChangelogFile="true"/>
     <include file="add-media-type-column-to-reports.xml" relativeToChangelogFile="true"/>
+    <include file="add-type-column-to-animals.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

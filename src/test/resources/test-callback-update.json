@@ -1,0 +1,17 @@
+{
+  "update_id": 785025347,
+  "callback_query": {
+    "id": "3356321432689576440",
+    "from": {
+      "id": 123,
+      "first_name": "Test-first_name",
+      "is_bot": false,
+      "last_name": "Test-last_name",
+      "username": "Test-username",
+      "language_code": "en",
+      "is_premium": true
+    },
+    "data": "%toReplace%",
+    "chat_instance": "-2151043907274946948"
+  }
+}

@@ -31,11 +31,13 @@ public class AnimalServiceImpl implements AnimalService {
     private final RepositoryUtils repositoryUtils;
 
     @Override
+    @Transactional
     public Optional<AnimalOutputDto> addAnimal(AnimalInputDto inputDto) {
         Animal animal = new Animal();
 
         animal.setName(inputDto.getName());
         animal.setAdult(inputDto.isAdult());
+        animal.setType(inputDto.getType());
 
         Animal savedAnimal = animalRepository.save(animal);
         log.info("Successfully saved: {}", savedAnimal);
@@ -44,6 +46,7 @@ public class AnimalServiceImpl implements AnimalService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<AnimalOutputDto> getAnimal(long id) {
         return animalRepository.findById(id).map(animalMapper::toOutputDto);
     }
@@ -101,6 +104,7 @@ public class AnimalServiceImpl implements AnimalService {
     }
 
     @Override
+    @Transactional
     public boolean deleteAnimalById(long id) {
         Optional<Animal> animal = animalRepository.findById(id);
         if (animal.isEmpty()) {

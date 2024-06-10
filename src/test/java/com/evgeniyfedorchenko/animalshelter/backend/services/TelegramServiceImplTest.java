@@ -1,6 +1,6 @@
 package com.evgeniyfedorchenko.animalshelter.backend.services;
 
-import com.evgeniyfedorchenko.animalshelter.telegram.listener.TelegramBot;
+import com.evgeniyfedorchenko.animalshelter.telegram.listener.TelegramExecutor;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ import static org.mockito.Mockito.*;
 class TelegramServiceImplTest {
 
     @Mock
-    private TelegramBot telegramBotMock;
+    private TelegramExecutor telegramExecutorMock;
     @InjectMocks
     private TelegramServiceImpl out;
 
@@ -35,9 +35,9 @@ class TelegramServiceImplTest {
     @Test
     void sendMessage_positiveTest() {
 
-        when(telegramBotMock.send(any(SendMessage.class))).thenReturn(true);
+        when(telegramExecutorMock.send(any(SendMessage.class))).thenReturn(true);
         out.sendMessage(randomChatId, randomString);
-        verify(telegramBotMock, times(1)).send(any(SendMessage.class));
+        verify(telegramExecutorMock, times(1)).send(any(SendMessage.class));
     }
 
     @Test
@@ -45,8 +45,13 @@ class TelegramServiceImplTest {
         long randomChatId = faker.random().nextLong(Long.MAX_VALUE);
         String randomString = faker.random().hex();
 
-        when(telegramBotMock.send(any(SendMessage.class))).thenReturn(false);
+        when(telegramExecutorMock.send(any(SendMessage.class))).thenReturn(false);
         out.sendMessage(randomChatId, randomString);
-        verify(telegramBotMock, times(1)).send(any(SendMessage.class));
+        verify(telegramExecutorMock, times(1)).send(any(SendMessage.class));
+    }
+
+    @Test
+    void savePhoto_positiveTest() {
+
     }
 }

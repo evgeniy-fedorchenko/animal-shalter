@@ -66,6 +66,7 @@ public class Constants {
                 .forEach(animal -> {
                     animal.setName(FAKER.letterify("animalName?????"));
                     animal.setAdult(FAKER.random().nextBoolean());
+                    animal.setType(FAKER.random().nextBoolean() ? Animal.Type.CAT : Animal.Type.DOG);
                     animal.setAdopter(null);
                 });
     }
@@ -77,8 +78,7 @@ public class Constants {
                     report.setHealth(FAKER.letterify("reportHealth?????"));
                     report.setChangeBehavior(FAKER.letterify("reportCB?????"));
                     report.setPhotoData(null);
-                    Instant instant = Instant.now();
-                    report.setSendingAt(instant);
+                    report.setSendingAt(Instant.now());
                     report.setVerified(FAKER.random().nextBoolean());
                     report.setAccepted(false);
                     report.setAdopter(null);

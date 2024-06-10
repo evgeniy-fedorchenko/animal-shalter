@@ -1,11 +1,13 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.listener;
 
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.MainHandler;
+import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -22,13 +24,16 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private final MainHandler mainHandler;
     private final TelegramExecutor telegramExecutor;
+    private final RedisTemplate<Long, Long> redisTemplate;
 
     public TelegramBot(@Value("${telegram.bot.token}") String botToken,
                        MainHandler mainHandler,
-                       TelegramExecutor telegramExecutor) {
+                       TelegramExecutor telegramExecutor,
+                       RedisTemplate<Long, Long> redisTemplate) {
         super(botToken);
         this.mainHandler = mainHandler;
         this.telegramExecutor = telegramExecutor;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -38,7 +43,6 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     /**
      * Метод получения сообщений непосредственно с серверов Telegram, а так же их маршрутизации по методам обработки
-     *
      * @param update корневой объект, содержащий всю информацию о пришедшем обновлении
      */
     @Override
@@ -47,27 +51,36 @@ public class TelegramBot extends TelegramLongPollingBot {
         if (update != null) {
 
             log.info("Processing has BEGUN for updateID {}", update.getUpdateId());
-            BotApiMethod<? extends Serializable> messToSend = null;
 
-            if (update.hasMessage()) {
-
-                Message message = update.getMessage();
-
-                if (message.hasText()) {
-                    if (message.isCommand()) {
-                        messToSend = mainHandler.handleCommands(update);
-                    } else {
-                        messToSend = mainHandler.applyUnknownUserAction(update, message.getChatId());
-                    }
-                } else if (message.hasPhoto()) {
-                    messToSend = mainHandler.savePhoto(message).join();
-                }
-            } else if (update.hasCallbackQuery()) {
-                messToSend = mainHandler.handleCallbacks(update);
-            }
-
+            PartialBotApiMethod<? extends Serializable> messToSend = distributeUpdate(update);
             Optional.ofNullable(messToSend).ifPresent(telegramExecutor::send);
+
             log.info("Processing has successfully ENDED for updateID {}", update.getUpdateId());
         }
+    }
+
+    private @Nullable PartialBotApiMethod<? extends Serializable> distributeUpdate(Update update) {
+        if (update.hasMessage()) {
+
+            Message message = update.getMessage();
+
+            Long communicatingChatId = redisTemplate.opsForValue().get(message.getChatId());
+            if (communicatingChatId != null) {
+                return mainHandler.communicationWithVolunteer(message);
+            }
+
+            if (message.hasText()) {
+                boolean command = message.isCommand();
+                return command
+                        ? mainHandler.handleCommands(update)
+                        : mainHandler.applyUnknownUserAction(update);
+
+            } else if (message.hasPhoto()) {
+                return mainHandler.savePhoto(message).join();
+            }
+        } else if (update.hasCallbackQuery()) {
+            return mainHandler.handleCallbacks(update);
+        }
+        return null;
     }
 }

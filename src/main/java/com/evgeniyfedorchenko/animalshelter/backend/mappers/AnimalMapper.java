@@ -15,6 +15,7 @@ public class AnimalMapper {
         animalOutputDto.setId(animal.getId());
         animalOutputDto.setName(animal.getName());
         animalOutputDto.setAdult(animal.isAdult());
+        animalOutputDto.setType(animal.getType());
 
         Optional.ofNullable(animal.getAdopter()).ifPresent(adopter -> {
                     animalOutputDto.setAdopterId(adopter.getId());

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -35,6 +36,7 @@ public class RepositoryUtils {
      * @param offset Количество элементов, которые нужно пропустить (для пагинации)
      * @return Список объектов, найденных и отсортированных в соответствии с указанными параметрами
      */
+    @Transactional(readOnly = true)
     public List<?> searchEntities(Class<?> entity, String sortParam, SortOrder sortOrder, int limit, int offset) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<?> cq = cb.createQuery(entity);
