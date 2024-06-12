@@ -5,6 +5,8 @@ import com.evgeniyfedorchenko.animalshelter.backend.dto.AdopterInputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AnimalInputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Adopter;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Animal;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
@@ -19,10 +21,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.telegrambots.meta.api.objects.MaybeInaccessibleMessage;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.telegram.telegrambots.meta.api.objects.serialization.MaybeInaccessibleMessageDeserializer;
+import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -171,8 +175,9 @@ public class TestUtils<E> {
      * @param entityCollection коллекция сущностей для сравнения. Возвращаемое число
      *                         не будет равняться с id любой из этих сущностей
      * @return положительное число, не совпадающее ни с одним id переданных сущностей
-     * @throws IllegalArgumentException если переданная коллекция параметризована классом неизвестной сущности
-     * @throws NullPointerException     если переданная коллекция пуста или не инициализирована
+     * @throws IllegalStateException если переданная коллекция параметризована классом, не аннотированным {@link Entity}
+     * @throws NullPointerException  если переданная коллекция пуста или не инициализирована
+     * @throws RuntimeException      если в классе сущности не доступен метода {@code getId()}
      */
     public long getIdNonExistsIn(List<Object> entityCollection) {
 
@@ -205,13 +210,14 @@ public class TestUtils<E> {
     /**
      * Метод для получения объекта Update из файла json, находящегося в ресурсах. Если {@code withPhoto = true},
      * то {@code isCommand} не имеет значения
+     *
      * @param messText  Текст, который будет помещен в Update.getMessage().getText()
      * @param isCommand Указывает, что это команда бота или нет. Если установлено в {@code true}, то помимо прочего
      *                  из параметра {@code messText} будет сгенерирована соответствующая {@link MessageEntity}
      *                  и помещена в массив {@code Update.getMessage().getEntities()}.
      *                  Проверка на {@code isCommand} вернет {@code true}
-     * @param withPhoto Указывает должен присутствовать в сообщении {@code List<PhotoSize>}.
-     *                  Список в любом случае будет содержать один пустой объект
+     * @param withPhoto Указывает должен ли присутствовать в сообщении {@code List<PhotoSize>}.
+     *                  Список в этом случае будет содержать один пустой объект
      * @return Объект Update, настроенный по указанным параметрам
      */
     public Update getUpdateWithMessage(@Nullable String messText, boolean isCommand, boolean withPhoto) {
@@ -221,7 +227,7 @@ public class TestUtils<E> {
 
         try {
             String json = Files.readString(new ClassPathResource("test-message-update.json").getFile().toPath());
-            if (messText == null ) {
+            if (messText == null) {
                 update = objectMapper.readValue(json, Update.class);
                 update.getMessage().setText(null);
 
@@ -238,12 +244,12 @@ public class TestUtils<E> {
             throw new RuntimeException("Could not read test-message-update.json", ex);
         }
 
-        /* Чтобы сработал метод Message.isCommand() нужно засетить
-           в update новую MessageEntity и указать что это "botCommand" */
         if (!isCommand) {
             return update;
         }
 
+        /* Чтобы сработал метод Message.isCommand() нужно засетить
+           в update новую MessageEntity и указать что это "botCommand" */
         MessageEntity botCommand = new MessageEntity("bot_command", 0, messText.length());
         botCommand.setText(messText);
         update.getMessage().setEntities(Collections.singletonList(botCommand));
@@ -252,10 +258,36 @@ public class TestUtils<E> {
 
     public Update getUpdateWithCallback(String callbackData) {
 
+        String fileName = "test-callback-update.json";
         try {
-            String json = Files.readString(new ClassPathResource("test-callback-update.json").getFile().toPath());
+            String json = Files.readString(new ClassPathResource(fileName).getFile().toPath());
             String replaced = json.replace("%toReplace%", callbackData);
-            return new ObjectMapper().readValue(replaced, Update.class);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            SimpleModule module = new SimpleModule();
+
+
+            module.addDeserializer(MaybeInaccessibleMessage.class, new MaybeInaccessibleMessageDeserializer());
+            objectMapper.registerModule(module);
+
+            return objectMapper.readValue(replaced, Update.class);
+
+        } catch (IOException ex) {
+            throw new RuntimeException("Could not read " + fileName, ex);
+        }
+    }
+
+    public Update getUpdateWithSticker() {
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String json = Files.readString(new ClassPathResource("test-message-update.json").getFile().toPath());
+
+            Update update = objectMapper.readValue(json, Update.class);
+            update.getMessage().setText(null);
+            update.getMessage().setSticker(new Sticker());
+
+            return update;
 
         } catch (IOException ex) {
             throw new RuntimeException("Could not read test-message-update.json", ex);

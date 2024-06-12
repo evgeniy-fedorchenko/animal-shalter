@@ -3,13 +3,30 @@
   "callback_query": {
     "id": "3356321432689576440",
     "from": {
-      "id": 123,
+      "id": 123456,
       "first_name": "Test-first_name",
       "is_bot": false,
       "last_name": "Test-last_name",
       "username": "Test-username",
       "language_code": "en",
       "is_premium": true
+    },
+    "message": {
+      "message_id": 456,
+      "from" : {
+        "id" : 6461284677,
+        "first_name" : "Animal shelter",
+        "is_bot" : true,
+        "username" : "animal_shelter_helper_bot"
+      },
+      "date" : 1717522855,
+      "chat" : {
+        "id" : 123456,
+        "type" : "private",
+        "first_name" : "Test-first_name",
+        "last_name" : "Test-last_name",
+        "username" : "Test-username"
+      }
     },
     "data": "%toReplace%",
     "chat_instance": "-2151043907274946948"
