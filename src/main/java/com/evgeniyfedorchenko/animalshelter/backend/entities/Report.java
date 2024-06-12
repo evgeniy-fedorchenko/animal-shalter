@@ -64,6 +64,10 @@ public class Report {
     @JoinColumn(name = "adopter_id")
     private Adopter adopter;
 
+    public boolean hasAdopter() {
+        return adopter != null;
+    }
+
     public boolean hasPhotoDataAndMediaType() {
         return photoData != null && photoData.length > 0 && mediaType != null;
     }

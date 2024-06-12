@@ -43,6 +43,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     /**
      * Метод получения сообщений непосредственно с серверов Telegram, а так же их маршрутизации по методам обработки
+     *
      * @param update корневой объект, содержащий всю информацию о пришедшем обновлении
      */
     @Override
@@ -64,19 +65,17 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             Message message = update.getMessage();
 
-            Long communicatingChatId = redisTemplate.opsForValue().get(message.getChatId());
-            if (communicatingChatId != null) {
-                return mainHandler.communicationWithVolunteer(message);
+            Long specialBehaviorId = redisTemplate.opsForValue().get(message.getChatId());
+            if (specialBehaviorId != null) {
+                return specialBehaviorId > 0
+                        ? mainHandler.communicationWithVolunteer(message)
+                        : mainHandler.sendReportProcess(message, specialBehaviorId);
             }
 
             if (message.hasText()) {
-                boolean command = message.isCommand();
-                return command
+                return message.isCommand()
                         ? mainHandler.handleCommands(update)
                         : mainHandler.applyUnknownUserAction(update);
-
-            } else if (message.hasPhoto()) {
-                return mainHandler.savePhoto(message).join();
             }
         } else if (update.hasCallbackQuery()) {
             return mainHandler.handleCallbacks(update);

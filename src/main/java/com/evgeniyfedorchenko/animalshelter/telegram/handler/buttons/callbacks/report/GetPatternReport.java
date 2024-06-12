@@ -1,7 +1,8 @@
-package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks;
+package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.report;
 
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageModel;
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageUtils;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.Callback;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 
@@ -18,8 +19,8 @@ public class GetPatternReport implements Callback {
 
         Map<String, String> keyboardData = new LinkedHashMap<>();
 
-        keyboardData.put("Начнем! (backend)", START.getCallbackData());
-        keyboardData.put("Назад",             MAIN_REPORT_MENU.getCallbackData());
+        keyboardData.put("Начнем!", SEND_REPORT.getCallbackData());
+        keyboardData.put("Назад",   MAIN_REPORT_MENU.getCallbackData());
 
         MessageUtils messageUtils = new MessageUtils();
         MessageModel messageModel = MessageModel.builder()

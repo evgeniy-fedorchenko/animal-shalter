@@ -114,4 +114,9 @@ public class AnimalServiceImpl implements AnimalService {
         animalRepository.deleteById(id);
         return true;
     }
+
+    @Override
+    public Animal getFreeAnimal() {
+        return animalRepository.findFirstByAdopterIsNull().orElseThrow();
+    }
 }

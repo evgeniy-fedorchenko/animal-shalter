@@ -16,7 +16,10 @@
 
         <addColumn tableName="animals">
             <column name="type" type="varchar(30)">
-                <constraints nullable="false"/>
+                <constraints
+                        nullable="false"
+                        checkConstraint="type in ('DOG', 'CAT')"
+                />
             </column>
         </addColumn>
 

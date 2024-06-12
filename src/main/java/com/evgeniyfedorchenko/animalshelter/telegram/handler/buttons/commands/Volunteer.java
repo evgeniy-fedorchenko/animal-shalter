@@ -1,5 +1,6 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.commands;
 
+import com.evgeniyfedorchenko.animalshelter.backend.services.TelegramService;
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageModel;
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageUtils;
 import com.evgeniyfedorchenko.animalshelter.telegram.listener.TelegramExecutor;
@@ -9,6 +10,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageData.VOLUNTEER;
@@ -20,6 +22,7 @@ public class Volunteer implements Command {
 
     private final TelegramExecutor telegramExecutor;
     private final RedisTemplate<Long, Long> redisTemplate;
+    private final TelegramService telegramService;
 
     @Override
     public SendMessage apply(Long chatId) {
@@ -32,22 +35,28 @@ public class Volunteer implements Command {
                 .messageData(VOLUNTEER)
                 .build();
 
-        return messageUtils.applyCommand(messageModel);
+        SendMessage sendMessage = messageUtils.applyCommand(messageModel);
+        return sendMessage;
     }
 
     public void callVolunteer(Long userChatId) {
 
-        long volunteerChatId = 5076421775L;
-        String needVolunteerMessage = "Требуется помощь волонтера";
+        // TODO 10.06.2024 23:12 - Добавить: если волонтера не нашлось - то еще в сервисе опрашивать бд раз в минуту
+        //  с вопросом "а не появился ли свободный волонтер?" и возвращать значение только тогда, когда появился.
+        //  + возможно выставить таймер на .join()
+        //  А к письму, которое отправляется юзеру приделать кнопку "прекратить ожидание", чтоб поток намертво
+        //  не вставал. Хотя все равно каждый юзер пользуется ботом в своем потоке
 
-        // TODO 01.06.2024 15:39 - создать пул волонтеров, и выбирать рандомного свободного из пула;
-        //      с ним инициировать диалог и удалять из пула свободных волонтеров;
-        //      после завершения диалога с юзером, класть волонтера обратно
+        String messToVolunteer = "Волонтер! Требуется твоя помощь, отправь приветственное сообщение в этот чат";
+        Optional<Long> chatIdOpt = telegramService.getFreeVolunteer().join();
 
-        SendMessage sendMessage = new SendMessage(String.valueOf(volunteerChatId), needVolunteerMessage);
-        telegramExecutor.send(sendMessage);
+        if (chatIdOpt.isPresent()) {
+            Long volunteerChatId = chatIdOpt.get();
+            SendMessage sendMessage = new SendMessage(String.valueOf(volunteerChatId), messToVolunteer);
+            telegramExecutor.send(sendMessage);
 
-        redisTemplate.opsForValue().set(userChatId, volunteerChatId);
-        redisTemplate.opsForValue().set(volunteerChatId, userChatId);
+            redisTemplate.opsForValue().set(userChatId, volunteerChatId);
+            redisTemplate.opsForValue().set(volunteerChatId, userChatId);
+        }
     }
 }

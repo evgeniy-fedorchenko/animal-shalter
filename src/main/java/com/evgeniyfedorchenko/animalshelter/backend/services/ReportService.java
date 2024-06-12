@@ -1,6 +1,8 @@
 package com.evgeniyfedorchenko.animalshelter.backend.services;
 
 import com.evgeniyfedorchenko.animalshelter.backend.dto.ReportOutputDto;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.report.SendingReportPart;
+import jakarta.annotation.Nullable;
 import org.springframework.data.util.Pair;
 import org.springframework.http.MediaType;
 
@@ -17,4 +19,10 @@ public interface ReportService {
     boolean sendMessageAboutBadReport(long reportId);
 
     Optional<Pair<byte[], MediaType>> getPhoto(Long id);
+
+    List<SendingReportPart> checkUnsentReportParts(Long chatId);
+
+    void acceptReportPart(SendingReportPart specialBehaviorId, String text, Long chatId, @Nullable MediaType mediaType);
+
+    void acceptPhoto(Pair<byte[], MediaType> photoDataPair, Long chatId);
 }

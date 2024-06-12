@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+
+    <changeSet id="6" author="evgeniy-fedorchenko">
+
+        <preConditions>
+                <not>
+                    <tableExists tableName="volunteers"/>
+                </not>
+        </preConditions>
+
+        <comment>Create Volunteer table</comment>
+
+        <createTable tableName="volunteers">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints
+                        primaryKey="true"
+                        nullable="false"
+                />
+            </column>
+
+            <column name="name" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="chat_id" type="bigint">
+                <constraints
+                        unique="true"
+                        nullable="false"
+                />
+            </column>
+
+            <column name="free" type="boolean">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+    </changeSet>
+
+</databaseChangeLog>

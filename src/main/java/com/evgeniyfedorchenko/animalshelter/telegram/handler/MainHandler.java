@@ -1,15 +1,20 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.handler;
 
+import com.evgeniyfedorchenko.animalshelter.backend.services.AdopterService;
+import com.evgeniyfedorchenko.animalshelter.backend.services.ReportService;
 import com.evgeniyfedorchenko.animalshelter.backend.services.TelegramService;
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageUtils;
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.Callback;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.report.SendReportContinue;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.report.SendingReportPart;
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.commands.Command;
 import com.evgeniyfedorchenko.animalshelter.telegram.listener.TelegramExecutor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.data.util.Pair;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -21,10 +26,15 @@ import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+
+import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageData.ENDING_VOLUNTEER_CHAT;
+import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.report.SendingReportPart.PHOTO;
+import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.report.SendingReportPart.of;
 
 
 /**
@@ -38,8 +48,11 @@ public class MainHandler {
 
     private final ApplicationContext applicationContext;
     private final TelegramService telegramService;
+    private final ReportService reportService;
+    private final AdopterService adopterService;
     private final TelegramExecutor telegramExecutor;
     private final RedisTemplate<Long, Long> redisTemplate;
+    private final SendReportContinue sendReportContinue;
 
     /**
      * Метод, обрабатывающий объекты {@code Command} полученные от Телеграм-бота. Метод ищет зарегистрированные
@@ -111,6 +124,8 @@ public class MainHandler {
     }
 
 
+    // TODO 12.06.2024 23:47 - изменить javadoc
+
     /**
      * Метод для получения фотографии от пользователя (нужно для функционала получения отчета). Обычно это сообщение
      * не содержит текста, а только фотографию. После попадания в метод отсюда сразу же возвращается экземпляр
@@ -120,38 +135,23 @@ public class MainHandler {
      * асинхронном потоке, но его уже никто не ждет
      *
      * @param message Сообщение, из которого нужно достать фотографию
-     * @return Экземпляр CompletableFuture<SendMessage> внутри которого будет помещен целевой объект
      */
-    @Async
-    public CompletableFuture<SendMessage> savePhoto(Message message) {
+    public Pair<byte[], MediaType> getPhotoData(Message message) {
 
         PhotoSize largestPhoto = message.getPhoto().stream()
                 .max(Comparator.comparing(PhotoSize::getFileSize))
                 .orElseThrow();
 
-        CompletableFuture<SendMessage> future = CompletableFuture.supplyAsync(() -> {
-            return new SendMessage(String.valueOf(message.getChatId()), "photo saved"); // TODO 28.05.2024 21:10 - заменить текст
-        });
-
-        future.thenAcceptAsync(_ -> telegramExecutor.getPhotoUrl(largestPhoto).ifPresentOrElse(
-                        photoUrl -> telegramService.savePhoto(photoUrl, message.getChatId()),
-                              () -> log.error("Cannot save photo of UserChatId={}", message.getChatId())
-                )
-        );
-        return future;
+        return telegramExecutor.getPhotoDataPair(largestPhoto).orElseThrow();
     }
 
     public PartialBotApiMethod<Message> communicationWithVolunteer(Message message) {
         Long l = redisTemplate.opsForValue().get(message.getChatId());
         String answeringChatId = String.valueOf(l);
 
-        InlineKeyboardMarkup keyboardMarkup = MessageUtils.getMarkupWithOneLinesButtons(new HashMap<>(Map.of("Завершить диалог", "Завершить диалог. Колбек")));
-
-        /* Родитель SendSticker и SendPhoto - "SendMediaBotMethod<T extends Serializable>", к сожалению еще не имеет
-           метода setReplyMarkup(), он есть только собственно вот в этих методах. А SendMessage вообще из другой
-           ветки наследования, их ближайший общий родитель - "PartialBotApiMethod<T extends Serializable>"
-           практически ничего не может предложить из методов. Поэтому полиморфизм использовать не выходит
-           Вообще, довольно неоднозначная иерархия наследования */
+        Map<String, String> endingButton =
+                Map.of(ENDING_VOLUNTEER_CHAT.getAnswer(), ENDING_VOLUNTEER_CHAT.getCallbackData());
+        InlineKeyboardMarkup keyboardMarkup = MessageUtils.getMarkupWithOneLinesButtons(endingButton);
 
         if (message.hasSticker()) {
             String fileId = message.getSticker().getFileId();
@@ -176,5 +176,49 @@ public class MainHandler {
         SendMessage sendMessage = new SendMessage(answeringChatId, message.getText());
         sendMessage.setReplyMarkup(keyboardMarkup);
         return sendMessage;
+    }
+
+    public SendMessage sendReportProcess(Message message, Long specialBehaviorId) {
+
+        if (message.hasText() && message.getText().length() > 500) {
+            String tooLongMess = """
+                    Ваше сообщение слишком длинное, пожалуйста сократите его
+                    Максимальна длина - 500 символов, а ваше сообщение содержит %s символов
+                    """.formatted(message.getText().length());
+            return new SendMessage(String.valueOf(message.getChatId()), tooLongMess);
+        }
+
+        SendingReportPart sendingReportPart = of(specialBehaviorId);
+        String suggestionToAdding = null;
+        String messageData;
+        MediaType mediaType;
+
+        if (!adopterService.existAdopterWithChatId(message.getChatId())) {
+            adopterService.addTrialAdopter(message);
+            suggestionToAdding = "Упс! Кажется я еще не знаю Вас, как усыновителя животного! Пожалуйста, свяжитесь с волонтером, чтобы он добавил вас! Но пока что сделаем вид, что этой проблемы нет, я просто добавил вас автоматически. На продакшене эта функция будет удалена";
+        }
+
+       /* Передаем байты фотки в той же переменной (messageData), где передаем и текст сообщения. А content-type
+          передаем в @Nullable-переменной (mediaType). Не самое элегантное решение, но зато самое лаконичное. Вместо
+          того, чтоб заводить отдельный метод чисто под сохранение фотки. А еще плюс все проверки - выходит очень длинно */
+        if (Objects.equals(sendingReportPart, PHOTO)) {
+
+            Pair<byte[], MediaType> photoData = getPhotoData(message);
+            messageData = Arrays.toString(photoData.getFirst());
+            mediaType = photoData.getSecond();
+        } else {
+            mediaType = null;
+            messageData = message.getText();
+        }
+
+//        Чтоб не ждать пока там всё проверится по репозиториям, создастся, свяжется и сохранится
+        CompletableFuture.runAsync(() ->
+                reportService.acceptReportPart(sendingReportPart, messageData, message.getChatId(), mediaType));
+
+        SendMessage applied = sendReportContinue.apply(message.getChatId());
+        if (suggestionToAdding != null) {
+            applied.setText(suggestionToAdding + "\n" + "_".repeat(30) + "\n\n" + applied.getText());
+        }
+        return applied;
     }
 }

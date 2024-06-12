@@ -24,7 +24,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -54,8 +53,6 @@ public class ReportControllerTest {
     private TestRestTemplate testRestTemplate;
     @Autowired
     private ReportMapper reportMapper;
-    @Autowired
-    private TransactionTemplate transactionTemplate;
     private List<Adopter> savedAdopters;
     private final List<Report> savedReports = new ArrayList<>();
     private final Random random = new Random();
@@ -65,9 +62,6 @@ public class ReportControllerTest {
             new PostgreSQLContainer<>("postgres:16.2");
     @Autowired
     private TestUtils<Report> testUtils;
-    @Autowired
-    private ReportController reportController;
-
 
     @DynamicPropertySource
     static void configurePostgres(DynamicPropertyRegistry registry) {

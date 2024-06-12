@@ -1,16 +1,19 @@
 package com.evgeniyfedorchenko.animalshelter.backend.services;
 
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.ReportRepository;
+import com.evgeniyfedorchenko.animalshelter.backend.repositories.VolunteerRepository;
 import com.evgeniyfedorchenko.animalshelter.telegram.listener.TelegramExecutor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
+import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -19,6 +22,7 @@ public class TelegramServiceImpl implements TelegramService {
 
     private final TelegramExecutor telegramExecutor;
     private final ReportRepository reportRepository;
+    private final VolunteerRepository volunteerRepository;
 
     @Override
     public boolean sendMessage(long chatId, String message) {
@@ -27,24 +31,24 @@ public class TelegramServiceImpl implements TelegramService {
     }
 
     @Override
-    public void savePhoto(URL url, Long chatId) {
+    public void savePhoto(Pair<byte[], MediaType> photoDataPair, Long chatId) {
+        // TODO 10.06.2024 23:05
+    }
 
-        byte[] photoData;
-        try (
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                InputStream is = url.openStream()
-        ) {
+    @Override
+    @Async
+    @Transactional
+    public CompletableFuture<Optional<Long>> getFreeVolunteer() {
 
-            byte[] data = new byte[4096];
-            int nRead;
-            while ((nRead = is.read(data, 0, data.length)) != -1) {
-                baos.write(data, 0, nRead);
-            }
-            baos.flush();
-            photoData = baos.toByteArray();
-        } catch (IOException ex) {
-            log.error("Cannot download file. Cause: {}", ex.getMessage());
-            return;
-        }
+        CompletableFuture<Optional<Long>> f = CompletableFuture.supplyAsync(volunteerRepository::getFreeVolunteer);
+        f.thenAcceptAsync(chatIdOpt -> chatIdOpt.ifPresent(chatId ->
+                volunteerRepository.setFreeStatusToVolunteerWith(false, chatId)));
+        return f;
+    }
+
+    @Override
+    @Transactional
+    public void returnVolunteer(Long volunteerChatId) {
+        volunteerRepository.setFreeStatusToVolunteerWith(true, volunteerChatId);
     }
 }

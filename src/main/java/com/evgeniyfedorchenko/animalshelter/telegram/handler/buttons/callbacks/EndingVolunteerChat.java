@@ -26,8 +26,8 @@ public class EndingVolunteerChat implements Callback {
         redisTemplate.delete(volunteerChatId);   // TODO 01.06.2024 23:51 - assert notnull
         redisTemplate.delete(chatId);
 
-        SendMessage message = new SendMessage(String.valueOf(volunteerChatId), "Пользователь завершил диалог");
-        telegramExecutor.send(message);
+        SendMessage sendMessage = new SendMessage(String.valueOf(volunteerChatId), "Пользователь завершил диалог");
+        telegramExecutor.send(sendMessage);
 
         MessageUtils messageUtils = new MessageUtils();
         MessageModel messageModel = MessageModel.builder()

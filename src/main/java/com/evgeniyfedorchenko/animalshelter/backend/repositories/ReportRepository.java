@@ -9,16 +9,18 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
     @Query("SELECT report FROM Report report WHERE report.verified = false ORDER BY report.sendingAt ASC")
-    @Transactional(readOnly = true)
     List<Report> findOldestUnviewedReports(Pageable pageable);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
-    @Transactional
+    @Transactional  // TODO 10.06.2024 00:22 - Написать комментарий для Димы, почему тут открывается транзакция
     @Query("UPDATE Report r SET r.verified = true WHERE r.id IN (:ids)")
-    void updateReportsViewedStatus(@Param("ids") List<Long> ids);
+    void updateReportsVerifiedStatus(@Param("ids") List<Long> ids);
 
+    @Query("SELECT r FROM Report r WHERE r.adopter.chatId = :adopterChatId ORDER BY r.sendingAt DESC")
+    Optional<Report> findNewestReportByAdopterChatId(Long adopterChatId);
 }

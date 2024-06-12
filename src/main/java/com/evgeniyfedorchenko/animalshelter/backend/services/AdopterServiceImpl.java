@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.util.List;
 import java.util.Optional;
@@ -53,7 +54,7 @@ public class AdopterServiceImpl implements AdopterService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Optional<AdopterOutputDto> getAdopter(long id) {
         return adopterRepository.findById(id).map(adopterMapper::toOutputDto);
     }
@@ -82,6 +83,30 @@ public class AdopterServiceImpl implements AdopterService {
         adopterRepository.deleteById(id);
         return true;
     }
+
+    @Override
+    public void addTrialAdopter(Message message) {
+        Adopter adopter = new Adopter();
+        adopter.setChatId(message.getChatId());
+        adopter.setName(message.getFrom().getUserName());
+        adopter.setPhoneNumber("79123456789");
+        adopter.setAssignedReportsQuantity(initialAssignedReportsQuantity);
+
+        List<Animal> all = animalRepository.findAll();
+        Optional<Animal> freeAnimal1 = animalRepository.findFirstByAdopterIsNull();
+        Animal freeAnimal = freeAnimal1.orElseThrow();
+        adopter.setAnimal(freeAnimal);
+        adopterRepository.save(adopter);
+
+        freeAnimal.setAdopter(adopter);
+        animalRepository.save(freeAnimal);
+    }
+
+    @Override
+    public boolean existAdopterWithChatId(Long chatId) {
+        return adopterRepository.findByChatId(chatId).isPresent();
+    }
+
 
     private String validatePhoneNumber(String phoneNumber) {
 

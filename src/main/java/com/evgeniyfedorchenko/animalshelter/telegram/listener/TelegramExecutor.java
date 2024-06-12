@@ -2,6 +2,8 @@ package com.evgeniyfedorchenko.animalshelter.telegram.listener;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.util.Pair;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.DefaultAbsSender;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
@@ -13,10 +15,9 @@ import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
 import java.util.Optional;
 
 @Slf4j
@@ -37,7 +38,7 @@ public class TelegramExecutor extends DefaultAbsSender {
      * @param method {@code @NotNull} Объект сообщения, готового к отправке
      * @return true, если сообщение было успешно отправлено, иначе false
      */
-    public Boolean send( PartialBotApiMethod<?> method) {
+    public Boolean send(PartialBotApiMethod<?> method) {
 
 //        Нет метода execute(), который принимает родителя SendSticker и SendPhoto и тем более общего с BotApiMethod<>
         boolean suc = true;
@@ -58,21 +59,15 @@ public class TelegramExecutor extends DefaultAbsSender {
         }
     }
 
-    public Optional<URL> getPhotoUrl(PhotoSize photo) {
+    public Optional<Pair<byte[], MediaType>> getPhotoDataPair(PhotoSize photo) {
 
-        GetFile getFileRequest = new GetFile(photo.getFileId());
+        try (InputStream is = downloadFileAsStream(execute(new GetFile(photo.getFileId())))) {
+//             TODO 10.06.2024 21:18 - пока поставим заглушку на content-type, пока непонятно как его определять
+            return Optional.of(Pair.of(is.readAllBytes(), MediaType.IMAGE_PNG));
 
-        try {
-            String fileUrl = execute(getFileRequest).getFileUrl(botToken);
-            URL url = URI.create(fileUrl).toURL();
-            return Optional.of(url);
-
-        } catch (TelegramApiException ex) {
-            log.error("Cannot invoke 'AbsSender.execute()'. Cause: {}", ex.getMessage());
-
-        } catch (MalformedURLException ex) {
-            log.error("Malformed URL. Cause: {}", ex.getMessage());
+        } catch (TelegramApiException | IOException ex) {
+            log.error("{} was thrown. Cause: {}", ex.getClass().getSimpleName(), ex.getMessage());
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 }
