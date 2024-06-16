@@ -1,17 +1,19 @@
 package com.evgeniyfedorchenko.animalshelter.telegram.listener;
 
 import com.evgeniyfedorchenko.animalshelter.TestUtils;
+import com.evgeniyfedorchenko.animalshelter.backend.entities.Adopter;
 import com.evgeniyfedorchenko.animalshelter.backend.services.TelegramServiceImpl;
 import com.evgeniyfedorchenko.animalshelter.telegram.configuration.RedisTestConfiguration;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageData;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.*;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.report.GetPatternReport;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.report.MainReportMenu;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.commands.Command;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.commands.Help;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.commands.Start;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.commands.Volunteer;
-import org.junit.jupiter.api.BeforeEach;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageData;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.Callback;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.SimpleApplicable;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.VolunteerChattingEnd;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.commands.Help;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.commands.Start;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.commands.Volunteer;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.menu.*;
+import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -25,6 +27,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.test.context.ActiveProfiles;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -37,16 +40,18 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageData.*;
+import static com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageData.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @Import(RedisTestConfiguration.class)
+@ActiveProfiles("test")
 class TelegramBotTest {
 
     @MockBean
@@ -59,16 +64,22 @@ class TelegramBotTest {
     private TelegramBot telegramBot;
 
     @MockBean
-    private ValueOperations<Long, Long> valueOperationsMock;
+    private ValueOperations<String, String> valueOperationsMock;
     @MockBean
-    private RedisTemplate<Long, Long> redisTemplateMock;
+    private RedisTemplate<String, String> redisTemplateMock;
 
     @Captor
     private ArgumentCaptor<PartialBotApiMethod<?>> methodCaptor;
-    private final TestUtils<?> testUtils = new TestUtils<>();
 
-    @BeforeEach
-    public void setup() {
+    @Autowired
+    private TestUtils<Adopter> testUtils;
+
+    @AfterEach
+    public void cleanRedis() {
+        Set<String> keys = redisTemplateMock.keys("*");
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplateMock.delete(keys);
+        }
     }
 
     private static Stream<Arguments> provideArgumentsForCommandsPositiveTest() {
@@ -80,7 +91,7 @@ class TelegramBotTest {
 
     @ParameterizedTest
     @MethodSource("provideArgumentsForCommandsPositiveTest")
-    void commandsPositiveTest(Class<? extends Command> commandClass,
+    void commandsPositiveTest(Class<? extends SimpleApplicable> commandClass,
                               MessageData expectedMessageData,
                               int keyboardButtonsCount) {
 
@@ -90,7 +101,7 @@ class TelegramBotTest {
 
         Update updateWithMessage =
                 testUtils.getUpdateWithMessage(beanNamesForType[0], true, false);
-        Long expectedChatId = updateWithMessage.getMessage().getChatId();
+        String expectedChatId = String.valueOf(updateWithMessage.getMessage().getChatId());
 
         when(redisTemplateMock.opsForValue()).thenReturn(valueOperationsMock);
         when(valueOperationsMock.get(expectedChatId)).thenReturn(null);
@@ -110,7 +121,7 @@ class TelegramBotTest {
         SendMessage actualSendMessage = (SendMessage) actual;
 
 //        Проверяем chatId и text
-        assertThat(actualSendMessage.getChatId()).isEqualTo(String.valueOf(expectedChatId));
+        assertThat(actualSendMessage.getChatId()).isEqualTo(expectedChatId);
         assertThat(actualSendMessage.getText()).isEqualTo(expectedMessageData.getAnswer());
 
 //        Проверяем клавиатуру
@@ -181,14 +192,14 @@ class TelegramBotTest {
     }
 
     @Test
-    void callingVolunteerFromButtonPositiveTest() {
+    void callingVolunteerFromButtonPositiveTest() throws InterruptedException {
 
         String[] beanNamesForType = applicationContext.getBeanNamesForType(Volunteer.class);
         assertThat(beanNamesForType).hasSize(1);
         Update updateWithMessage =
                 testUtils.getUpdateWithMessage(beanNamesForType[0], true, false);
-        Long expectedChatId = updateWithMessage.getMessage().getChatId();
-        long freeVolunteerChatId = 999L;
+        String expectedChatId = String.valueOf(updateWithMessage.getMessage().getChatId());
+        String freeVolunteerChatId = "999";
 
         when(redisTemplateMock.opsForValue()).thenReturn(valueOperationsMock)
                 .thenReturn(valueOperationsMock)
@@ -202,28 +213,31 @@ class TelegramBotTest {
         doNothing().when(valueOperationsMock).set(freeVolunteerChatId, expectedChatId);
 
         telegramBot.onUpdateReceived(updateWithMessage);
+        Thread.sleep(1000);
 
         verify(redisTemplateMock, times(3)).opsForValue();
 //        Вот кто бы мог подумать что 'Mockito.times(1)' и 'Mockito.only()' это не одно и то же :/
         verify(valueOperationsMock, times(1)).get(expectedChatId);
-        verify(valueOperationsMock, times(1)).set(freeVolunteerChatId, expectedChatId);
-        verify(valueOperationsMock, times(1)).set(expectedChatId, freeVolunteerChatId);
+        verify(valueOperationsMock, times(1))
+                .set(freeVolunteerChatId, expectedChatId);
+        verify(valueOperationsMock, times(1))
+                .set(expectedChatId, freeVolunteerChatId);
 
 //        Проверка, что отправляется два сообщения - одно волонтеру и одно юзеру
         verify(telegramExecutorMock, times(2)).send(methodCaptor.capture());
         List<PartialBotApiMethod<?>> allActualValues = methodCaptor.getAllValues();
-        assertThat(allActualValues.stream().allMatch(anyValue -> anyValue instanceof SendMessage)).isTrue();
 
         String messToVolunteer = "Волонтер! Требуется твоя помощь, отправь приветственное сообщение в этот чат";
+        assertThat(allActualValues.stream().allMatch(anyValue -> anyValue instanceof SendMessage)).isTrue();
         assertThat(
                 allActualValues.stream().anyMatch(actualValue1 ->
-                        ((SendMessage) actualValue1).getChatId().equals(String.valueOf(freeVolunteerChatId))
+                        ((SendMessage) actualValue1).getChatId().equals(freeVolunteerChatId)
                                 && ((SendMessage) actualValue1).getText().equals(messToVolunteer)
                 )).isTrue();
 
         assertThat(
                 allActualValues.stream().anyMatch(actualValue2 ->
-                        ((SendMessage) actualValue2).getChatId().equals(String.valueOf(expectedChatId))
+                        ((SendMessage) actualValue2).getChatId().equals(expectedChatId)
                                 && ((SendMessage) actualValue2).getText().equals(VOLUNTEER.getAnswer())
                 )).isTrue();
     }
@@ -256,12 +270,12 @@ class TelegramBotTest {
     @Test
     void endingVolunteerChatPositiveTest() {
 
-        String[] beanNamesForType = applicationContext.getBeanNamesForType(EndingVolunteerChat.class);
+        String[] beanNamesForType = applicationContext.getBeanNamesForType(VolunteerChattingEnd.class);
         assertThat(beanNamesForType).hasSize(1);
 
         Update updateWithCallback = testUtils.getUpdateWithCallback(beanNamesForType[0]);
-        Long chatIdFromCallback = updateWithCallback.getCallbackQuery().getMessage().getChatId();
-        long volunteerChatId = 999L;
+        String chatIdFromCallback = String.valueOf(updateWithCallback.getCallbackQuery().getMessage().getChatId());
+        String volunteerChatId = "999";
 
         when(redisTemplateMock.opsForValue()).thenReturn(valueOperationsMock);
         when(valueOperationsMock.get(chatIdFromCallback)).thenReturn(volunteerChatId);
@@ -272,26 +286,25 @@ class TelegramBotTest {
 
         telegramBot.onUpdateReceived(updateWithCallback);
 
+//        Проверка, что по завершению общения отправилось два сообщения - юзеру и волонтеру
         verify(telegramExecutorMock, times(2)).send(methodCaptor.capture());
         List<PartialBotApiMethod<?>> allActualValues = methodCaptor.getAllValues();
 
+        assertThat(allActualValues.stream().allMatch(anyValue -> anyValue instanceof SendMessage)).isTrue();
         assertThat(
                 allActualValues.stream().anyMatch(actualValue1 ->
-                        actualValue1 instanceof SendMessage
-                                && ((SendMessage) actualValue1).getChatId().equals(String.valueOf(volunteerChatId))
+                        ((SendMessage) actualValue1).getChatId().equals(volunteerChatId)
                                 && ((SendMessage) actualValue1).getText().equals("Пользователь завершил диалог")
                 )).isTrue();
 
         assertThat(
                 allActualValues.stream().anyMatch(actualValue2 ->
-                        actualValue2 instanceof EditMessageText
-                                && ((EditMessageText) actualValue2).getChatId()
-                                        .equals(String.valueOf(chatIdFromCallback))
-                                && ((EditMessageText) actualValue2).getText().equals(ENDING_VOLUNTEER_CHAT.getAnswer())
+                        ((SendMessage) actualValue2).getChatId().equals(chatIdFromCallback)
+                                && ((SendMessage) actualValue2).getText().equals(ENDING_VOLUNTEER_CHAT.getAnswer())
                 )).isTrue();
     }
 
-    private static Stream<Arguments> provideParamsForCommunicationWithVolunteerPositiveTest() {
+    private static Stream<Arguments> provideParamsForChattingWithVolunteerProcessPositiveTest() {
         TestUtils<?> testUtilsInStatic = new TestUtils<>();
         return Stream.of(
                 Arguments.of(testUtilsInStatic.getUpdateWithSticker()),   // Стикер
@@ -302,17 +315,19 @@ class TelegramBotTest {
     }
 
     @ParameterizedTest
-    @MethodSource("provideParamsForCommunicationWithVolunteerPositiveTest")
-    void communicationWithVolunteerPositiveTest(Update update) {
+    @MethodSource("provideParamsForChattingWithVolunteerProcessPositiveTest")
+    void chattingWithVolunteerProcessPositiveTest(@NotNull Update update) {
 
         String[] beanNamesForType = applicationContext.getBeanNamesForType(Volunteer.class);
         assertThat(beanNamesForType).hasSize(1);
 
         Message messageFromUpdate = update.getMessage();
-        long otherChattingSideChatId = 999L;
+        String otherChattingSideChatId = "999";
 
-        when(redisTemplateMock.opsForValue()).thenReturn(valueOperationsMock).thenReturn(valueOperationsMock);
-        when(valueOperationsMock.get(messageFromUpdate.getChatId())).thenReturn(otherChattingSideChatId).thenReturn(otherChattingSideChatId);
+        when(redisTemplateMock.opsForValue()).thenReturn(valueOperationsMock)
+                .thenReturn(valueOperationsMock);
+        when(valueOperationsMock.get(String.valueOf(messageFromUpdate.getChatId()))).thenReturn(otherChattingSideChatId)
+                .thenReturn(otherChattingSideChatId);
         when(telegramExecutorMock.send(any(PartialBotApiMethod.class))).thenReturn(true);
 
         telegramBot.onUpdateReceived(update);
@@ -320,13 +335,14 @@ class TelegramBotTest {
         verify(telegramExecutorMock, only()).send(methodCaptor.capture());
         PartialBotApiMethod<?> actualValue = methodCaptor.getValue();
         assertThat(actualValue).isNotNull();
-        InlineKeyboardMarkup actualKeyboard;
 
+//        Проверка, что любой поддерживаемый тип контента (стрикер, текст, фото, фото + текст) отправляется
+        InlineKeyboardMarkup actualKeyboard;
         switch (actualValue) {
             case SendSticker actual -> {
 
                 assertThat(messageFromUpdate.hasSticker()).isTrue();
-                assertThat(actual.getChatId()).isEqualTo(String.valueOf(otherChattingSideChatId));
+                assertThat(actual.getChatId()).isEqualTo(otherChattingSideChatId);
                 actualKeyboard = (InlineKeyboardMarkup) actual.getReplyMarkup();
             }
             case SendPhoto actual -> {
@@ -335,13 +351,13 @@ class TelegramBotTest {
                 assertThat(actual.getCaption()).isEqualTo(
                         messageFromUpdate.hasText() ? messageFromUpdate.getText() : null
                 );
-                assertThat(actual.getChatId()).isEqualTo(String.valueOf(otherChattingSideChatId));
+                assertThat(actual.getChatId()).isEqualTo(otherChattingSideChatId);
                 actualKeyboard = (InlineKeyboardMarkup) actual.getReplyMarkup();
             }
             case SendMessage actual -> {
 
                 assertThat(messageFromUpdate.hasText()).isTrue();
-                assertThat(actual.getChatId()).isEqualTo(String.valueOf(otherChattingSideChatId));
+                assertThat(actual.getChatId()).isEqualTo(otherChattingSideChatId);
                 assertThat(actual.getText()).isEqualTo(messageFromUpdate.getText());
 
                 actualKeyboard = (InlineKeyboardMarkup) actual.getReplyMarkup();
@@ -351,18 +367,64 @@ class TelegramBotTest {
             );
         }
 
+//        Проверка клавиатуры (одна кнопка - "Завершить диалог")
         assertThat(actualKeyboard).isNotNull();
         assertThat(
                 actualKeyboard.getKeyboard().stream()
                         .flatMapToInt(row -> IntStream.of(row.size()))
         ).hasSize(1);
-    }
-
-    @Test
-    void applyUnknownUserActionPositiveTest() {
+        assertThat(actualKeyboard.getKeyboard().getFirst().getFirst().getText()).isEqualTo("Завершить диалог");
     }
 
     @Test
     void unknownCommandPositiveTest() {
+        String targetUnknownCommand = "/command";
+        Update updateWithMessage = testUtils.getUpdateWithMessage(targetUnknownCommand, true, false);
+        String chatIdFromUpdate = String.valueOf(updateWithMessage.getMessage().getChatId());
+
+        when(redisTemplateMock.opsForValue()).thenReturn(valueOperationsMock);
+        when(valueOperationsMock.get(chatIdFromUpdate)).thenReturn(null);
+        when(telegramExecutorMock.send(any(PartialBotApiMethod.class))).thenReturn(true);
+
+        telegramBot.onUpdateReceived(updateWithMessage);
+
+        verify(telegramExecutorMock, only()).send(methodCaptor.capture());
+        PartialBotApiMethod<?> actualValue = methodCaptor.getValue();
+
+        assertThat(actualValue).isNotNull();
+        SendMessage actualMessage = (SendMessage) actualValue;
+
+        assertThat(actualMessage.getChatId()).isEqualTo(chatIdFromUpdate);
+        assertThat(actualMessage.getText()).isEqualTo("Unknown command: " + targetUnknownCommand);
     }
+
+    @Test
+    void applyUnknownUserActionPositiveTest() {
+        String targetUnknownText = "unknown text";
+        Update updateWithMessage = testUtils.getUpdateWithMessage(targetUnknownText, false, false);
+        String chatIdFromUpdate = String.valueOf(updateWithMessage.getMessage().getChatId());
+
+        when(redisTemplateMock.opsForValue()).thenReturn(valueOperationsMock);
+        when(valueOperationsMock.get(chatIdFromUpdate)).thenReturn(null);
+        when(telegramExecutorMock.send(any(PartialBotApiMethod.class))).thenReturn(true);
+
+        telegramBot.onUpdateReceived(updateWithMessage);
+
+        verify(telegramExecutorMock, only()).send(methodCaptor.capture());
+        PartialBotApiMethod<?> actualValue = methodCaptor.getValue();
+
+        assertThat(actualValue).isNotNull();
+        SendMessage actualMessage = (SendMessage) actualValue;
+
+        assertThat(actualMessage.getChatId()).isEqualTo(chatIdFromUpdate);
+        assertThat(actualMessage.getText())
+                .isEqualTo(
+                        """
+                                Я прошу прощения, но кажется, я вас не понимаю \uD83E\uDD72
+                                Как насчет того, чтобы просто начать сначала?)
+                                👉 /start 👈"""
+                );
+    }
+
+
 }

@@ -1,6 +1,5 @@
 package com.evgeniyfedorchenko.animalshelter.admin.controllers;
 
-import com.evgeniyfedorchenko.animalshelter.Constants;
 import com.evgeniyfedorchenko.animalshelter.TestUtils;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AdopterInputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AdopterOutputDto;
@@ -9,6 +8,7 @@ import com.evgeniyfedorchenko.animalshelter.backend.entities.Animal;
 import com.evgeniyfedorchenko.animalshelter.backend.mappers.AdopterMapper;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.AdopterRepository;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.AnimalRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,11 +34,14 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import static com.evgeniyfedorchenko.animalshelter.Constants.*;
+import static com.evgeniyfedorchenko.animalshelter.Constants.generateTestAdoptersInCountOf;
+import static com.evgeniyfedorchenko.animalshelter.Constants.generateTestAnimalsInCountOf;
 import static com.evgeniyfedorchenko.animalshelter.admin.controllers.SortOrder.ASC;
 import static com.evgeniyfedorchenko.animalshelter.admin.controllers.SortOrder.DESC;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
+@Slf4j
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AdopterControllerTest {
@@ -61,6 +64,7 @@ class AdopterControllerTest {
     private List<Adopter> savedAdopters;
     private List<Animal> savedAnimals;
     private final Random random = new Random();
+    private final Adopter specialAdopter = generateTestAdoptersInCountOf(1).getFirst();
 
     @Container
     private static final PostgreSQLContainer<?> POSTGRES_CONTAINER =
@@ -81,10 +85,8 @@ class AdopterControllerTest {
 
     @BeforeEach
     public void beforeEach() {
-        Constants.testConstantsInitialize();
-
-        savedAdopters = adopterRepository.saveAll(TEST_5_ADOPTERS);
-        savedAnimals = animalRepository.saveAll(TEST_5_ANIMALS);
+        savedAdopters = adopterRepository.saveAll(generateTestAdoptersInCountOf(5));
+        savedAnimals = animalRepository.saveAll(generateTestAnimalsInCountOf(5));
     }
 
     @AfterEach
@@ -113,8 +115,8 @@ class AdopterControllerTest {
     @MethodSource("provideParamsForAddAdopter")
     void addAdopter_positiveTest(String phoneNumber) {
 
-        UNSAVED_ADOPTER.setPhoneNumber(phoneNumber);
-        AdopterInputDto inputDto = testUtils.toInputDto(UNSAVED_ADOPTER);
+        specialAdopter.setPhoneNumber(phoneNumber);
+        AdopterInputDto inputDto = testUtils.toInputDto(specialAdopter);
         ResponseEntity<AdopterOutputDto> responseEntity = testRestTemplate.postForEntity(
                 baseAdopterUrl(),
                 inputDto,
@@ -126,7 +128,9 @@ class AdopterControllerTest {
                 .isNotNull()
                 .usingRecursiveComparison()
                 .ignoringFields("id", "phoneNumber")
-                .isEqualTo(adopterMapper.toOutputDto(UNSAVED_ADOPTER));
+                .isEqualTo(adopterMapper.toOutputDto(specialAdopter));
+
+        assertThatCode(() -> log.trace(responseEntity.getBody().toString())).doesNotThrowAnyException();
 
 //        Проверка, что Adopter сохранился в БД
         Optional<Adopter> adopterFromDb = adopterRepository.findById(responseEntity.getBody().getId());
@@ -134,11 +138,11 @@ class AdopterControllerTest {
         assertThat(adopterFromDb.get())
                 .usingRecursiveComparison()
                 .ignoringFields("id", "phoneNumber")
-                .isEqualTo(UNSAVED_ADOPTER);
+                .isEqualTo(specialAdopter);
 
 //        Тк phoneNumber при сохранении меняется на стандартный ^79\d{9}$, то его проверяем отдельно. Ведь объекты уже не сходятся по этому полю
         String phoneFromDb = adopterFromDb.get().getPhoneNumber();
-        String phoneFromUnsavedAdopter = UNSAVED_ADOPTER.getPhoneNumber();
+        String phoneFromUnsavedAdopter = specialAdopter.getPhoneNumber();
 
         assertThat(phoneFromDb).startsWith("79");
         assertThat(phoneFromDb.substring(phoneFromDb.length() - 9))
@@ -148,7 +152,7 @@ class AdopterControllerTest {
     @Test
     void addAdopterWithAnimal_positiveTest() {
 
-        Adopter targetAdopter = UNSAVED_ADOPTER;
+        Adopter targetAdopter = specialAdopter;
         Animal targetAnimal = savedAnimals.getFirst();
         targetAdopter.setAnimal(targetAnimal);
 

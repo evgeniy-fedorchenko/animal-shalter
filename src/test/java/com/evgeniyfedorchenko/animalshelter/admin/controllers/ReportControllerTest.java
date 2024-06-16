@@ -1,6 +1,5 @@
 package com.evgeniyfedorchenko.animalshelter.admin.controllers;
 
-import com.evgeniyfedorchenko.animalshelter.Constants;
 import com.evgeniyfedorchenko.animalshelter.TestUtils;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.ReportOutputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Adopter;
@@ -8,14 +7,13 @@ import com.evgeniyfedorchenko.animalshelter.backend.entities.Report;
 import com.evgeniyfedorchenko.animalshelter.backend.mappers.ReportMapper;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.AdopterRepository;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.ReportRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -33,13 +31,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
-import static com.evgeniyfedorchenko.animalshelter.Constants.TEST_5_ADOPTERS;
-import static com.evgeniyfedorchenko.animalshelter.Constants.TEST_5_REPORTS;
+import static com.evgeniyfedorchenko.animalshelter.Constants.generateTestAdoptersInCountOf;
+import static com.evgeniyfedorchenko.animalshelter.Constants.generateTestReportsInCountOf;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
+@Slf4j
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ExtendWith(MockitoExtension.class)
 public class ReportControllerTest {
 
     @LocalServerPort
@@ -53,6 +52,10 @@ public class ReportControllerTest {
     private TestRestTemplate testRestTemplate;
     @Autowired
     private ReportMapper reportMapper;
+
+    @Autowired
+    private TestUtils<Report> testUtils;
+
     private List<Adopter> savedAdopters;
     private final List<Report> savedReports = new ArrayList<>();
     private final Random random = new Random();
@@ -60,8 +63,6 @@ public class ReportControllerTest {
     @Container
     private static final PostgreSQLContainer<?> POSTGRES_CONTAINER =
             new PostgreSQLContainer<>("postgres:16.2");
-    @Autowired
-    private TestUtils<Report> testUtils;
 
     @DynamicPropertySource
     static void configurePostgres(DynamicPropertyRegistry registry) {
@@ -77,10 +78,9 @@ public class ReportControllerTest {
 
     @BeforeEach
     public void beforeEach() {
-        Constants.testConstantsInitialize();
 
-        savedAdopters = adopterRepository.saveAll(TEST_5_ADOPTERS);
-        TEST_5_REPORTS.forEach(report -> {
+        savedAdopters = adopterRepository.saveAll(generateTestAdoptersInCountOf(5));
+        generateTestReportsInCountOf(5).forEach(report -> {
             Adopter randomAdopter = savedAdopters.get(random.nextInt(1, savedAdopters.size()));
             report.setAdopter(randomAdopter);
             Report savedReport = reportRepository.save(report);
@@ -126,6 +126,8 @@ public class ReportControllerTest {
         );
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(responseEntity.getBody()).isNotNull();
+
+        assertThatCode(() -> log.trace(responseEntity.getBody().toString())).doesNotThrowAnyException();
 
 //        Проверка, что приложение вернуло те же объекты
         assertThat(responseEntity.getBody())

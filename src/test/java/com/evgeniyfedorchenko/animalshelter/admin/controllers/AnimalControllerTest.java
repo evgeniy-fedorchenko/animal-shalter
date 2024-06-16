@@ -1,6 +1,5 @@
 package com.evgeniyfedorchenko.animalshelter.admin.controllers;
 
-import com.evgeniyfedorchenko.animalshelter.Constants;
 import com.evgeniyfedorchenko.animalshelter.TestUtils;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AnimalInputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AnimalOutputDto;
@@ -9,6 +8,7 @@ import com.evgeniyfedorchenko.animalshelter.backend.entities.Animal;
 import com.evgeniyfedorchenko.animalshelter.backend.mappers.AnimalMapper;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.AdopterRepository;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.AnimalRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,11 +35,14 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import static com.evgeniyfedorchenko.animalshelter.Constants.*;
+import static com.evgeniyfedorchenko.animalshelter.Constants.generateTestAdoptersInCountOf;
+import static com.evgeniyfedorchenko.animalshelter.Constants.generateTestAnimalsInCountOf;
 import static com.evgeniyfedorchenko.animalshelter.admin.controllers.SortOrder.ASC;
 import static com.evgeniyfedorchenko.animalshelter.admin.controllers.SortOrder.DESC;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
+@Slf4j
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AnimalControllerTest {
@@ -62,11 +65,11 @@ public class AnimalControllerTest {
     private List<Adopter> savedAdopters;
     private List<Animal> savedAnimals;
     private final Random random = new Random();
+    private final Animal specialAnimal = generateTestAnimalsInCountOf(1).getFirst();
 
     @Container
     private static final PostgreSQLContainer<?> POSTGRES_CONTAINER =
             new PostgreSQLContainer<>("postgres:16.2");
-
 
     @DynamicPropertySource
     static void configurePostgres(DynamicPropertyRegistry registry) {
@@ -82,10 +85,8 @@ public class AnimalControllerTest {
 
     @BeforeEach
     public void beforeEach() {
-        Constants.testConstantsInitialize();
-
-        savedAdopters = adopterRepository.saveAll(TEST_5_ADOPTERS);
-        savedAnimals = animalRepository.saveAll(TEST_5_ANIMALS);
+        savedAdopters = adopterRepository.saveAll(generateTestAdoptersInCountOf(5));
+        savedAnimals = animalRepository.saveAll(generateTestAnimalsInCountOf(5));
     }
 
     @AfterEach
@@ -104,7 +105,7 @@ public class AnimalControllerTest {
 
     @Test
     void addAnimal_positiveTest() {
-        AnimalInputDto inputDto = testUtils.toInputDto(UNSAVED_ANIMAL);
+        AnimalInputDto inputDto = testUtils.toInputDto(specialAnimal);
         ResponseEntity<AnimalOutputDto> responseEntity = testRestTemplate.postForEntity(
                 baseAnimalUrl(),
                 inputDto,
@@ -116,7 +117,9 @@ public class AnimalControllerTest {
                 .isNotNull()
                 .usingRecursiveComparison()
                 .ignoringFields("id")
-                .isEqualTo(animalMapper.toOutputDto(UNSAVED_ANIMAL));
+                .isEqualTo(animalMapper.toOutputDto(specialAnimal));
+
+        assertThatCode(() -> log.trace(responseEntity.getBody().toString())).doesNotThrowAnyException();
 
 //        Проверка, что Animal сохранился в БД
         Optional<Animal> animalFromDb = animalRepository.findById(responseEntity.getBody().getId());
@@ -124,7 +127,7 @@ public class AnimalControllerTest {
         assertThat(animalFromDb.get())
                 .usingRecursiveComparison()
                 .ignoringFields("id")
-                .isEqualTo(UNSAVED_ANIMAL);
+                .isEqualTo(specialAnimal);
     }
 
     @Test
