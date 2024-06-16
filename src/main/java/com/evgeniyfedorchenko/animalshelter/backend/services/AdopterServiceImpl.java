@@ -47,7 +47,7 @@ public class AdopterServiceImpl implements AdopterService {
         }
 
         Adopter savedAdopter = adopterRepository.save(adopter);
-        log.info("Saved adopter: {}", savedAdopter);
+        log.debug("Saved adopter: {}", savedAdopter);
 
         animalOpt.ifPresent(animal -> animal.setAdopter(adopter));
         return Optional.ofNullable(adopterMapper.toOutputDto(savedAdopter));
@@ -60,6 +60,7 @@ public class AdopterServiceImpl implements AdopterService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AdopterOutputDto> searchAdopters(String sortParam, SortOrder sortOrder, int pageSize, int pageNumber) {
 
         int offset = (pageNumber - 1) * pageSize;
@@ -80,30 +81,33 @@ public class AdopterServiceImpl implements AdopterService {
             log.warn("No adopter found with id: {}", id);
             return false;
         }
+        log.debug("Deleted adopter: {} with all his reports", adopterOpt.get());
         adopterRepository.deleteById(id);
         return true;
     }
 
     @Override
+    @Transactional
     public void addTrialAdopter(Message message) {
         Adopter adopter = new Adopter();
-        adopter.setChatId(message.getChatId());
+        adopter.setChatId(String.valueOf(message.getChatId()));
         adopter.setName(message.getFrom().getUserName());
         adopter.setPhoneNumber("79123456789");
         adopter.setAssignedReportsQuantity(initialAssignedReportsQuantity);
 
-        List<Animal> all = animalRepository.findAll();
-        Optional<Animal> freeAnimal1 = animalRepository.findFirstByAdopterIsNull();
-        Animal freeAnimal = freeAnimal1.orElseThrow();
+        Animal freeAnimal = animalRepository.findFirstByAdopterIsNull().orElseThrow();
         adopter.setAnimal(freeAnimal);
-        adopterRepository.save(adopter);
+        Adopter savedAdopter = adopterRepository.save(adopter);
 
-        freeAnimal.setAdopter(adopter);
-        animalRepository.save(freeAnimal);
+        freeAnimal.setAdopter(savedAdopter); // TODO 14.06.2024 20:50 - проверить как сетится анимал
+        Animal savedAnimal = animalRepository.save(freeAnimal);
+        log.debug("Trial adopter saved with assigned animal. Adopter:{}, animal:{}",
+                savedAdopter.getId(), savedAnimal.getId());
     }
 
     @Override
-    public boolean existAdopterWithChatId(Long chatId) {
+    @Transactional(readOnly = true)
+    public boolean existAdopterWithChatId(String chatId) {
         return adopterRepository.findByChatId(chatId).isPresent();
     }
 

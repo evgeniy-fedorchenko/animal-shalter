@@ -7,7 +7,6 @@ import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -149,5 +148,27 @@ public class RepositoryUtils {
         } catch (NoSuchFieldException _) {
             return false;
         }
+    }
+
+    public List<String> get() {
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<String> query = cb.createQuery(String.class);
+
+        Root<Adopter> adopter = query.from(Adopter.class);
+        Join<Adopter, Report> reports = adopter.join("reports", JoinType.INNER);
+
+        Predicate acceptedReports = cb.and(
+                cb.equal(reports.get("accepted"), true),
+                cb.greaterThanOrEqualTo(reports.get("sendingAt"), cb.literal(LocalDateTime.now().minusDays(30)))
+        );
+
+        // Используем having для фильтрации по агрегированным значениям
+        query.select(adopter.get("chatId"))
+                .where(acceptedReports)
+                .groupBy(adopter.get("chatId"))
+                .having(cb.ge(cb.count(reports), 27));
+
+        return entityManager.createQuery(query).getResultList();
     }
 }

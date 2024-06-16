@@ -81,7 +81,7 @@ public class Report {
                         health != null ? health : "no health",
                         changeBehavior != null ? changeBehavior : "no changeBehavior",
                         photoData,   // при помощи '%b' выводим false если поле равно null и true в противном случае
-                        DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss").withZone(ZoneId.systemDefault()).format(sendingAt),
+                        sendingAt == null ? "not saved yet" : DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss").withZone(ZoneId.systemDefault()).format(sendingAt),
                         verified,
                         accepted,
                         adopter

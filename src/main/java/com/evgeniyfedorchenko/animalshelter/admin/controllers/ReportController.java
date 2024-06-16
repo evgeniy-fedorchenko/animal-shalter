@@ -5,7 +5,9 @@ import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.repo
 import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.report.GetUnverifiedReportsDocumentation;
 import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.report.SendMessageAboutBadReportDocumentation;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.ReportOutputDto;
+import com.evgeniyfedorchenko.animalshelter.backend.repositories.VolunteerRepository;
 import com.evgeniyfedorchenko.animalshelter.backend.services.ReportService;
+import com.evgeniyfedorchenko.animalshelter.backend.services.TelegramService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
@@ -27,7 +29,9 @@ import java.util.concurrent.CompletableFuture;
 public class ReportController {
 
     private final ReportService reportService;
+    private final TelegramService telegramService;
     public static final String BASE_REPORT_URI = "/reports";
+    private final VolunteerRepository volunteerRepository;
 
     @GetUnverifiedReportsDocumentation
     @GetMapping
