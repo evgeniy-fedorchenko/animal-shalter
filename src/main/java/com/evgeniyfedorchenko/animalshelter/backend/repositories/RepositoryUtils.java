@@ -1,6 +1,8 @@
 package com.evgeniyfedorchenko.animalshelter.backend.repositories;
 
 import com.evgeniyfedorchenko.animalshelter.admin.controllers.SortOrder;
+import com.evgeniyfedorchenko.animalshelter.backend.entities.Adopter;
+import com.evgeniyfedorchenko.animalshelter.backend.entities.Report;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.AllArgsConstructor;
@@ -10,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @AllArgsConstructor
@@ -33,7 +36,7 @@ public class RepositoryUtils {
      * @param offset Количество элементов, которые нужно пропустить (для пагинации)
      * @return Список объектов, найденных и отсортированных в соответствии с указанными параметрами
      */
-    @Transactional(readOnly = true)
+//    @Transactional(readOnly = true)
     public List<?> searchEntities(Class<?> entity, String sortParam, SortOrder sortOrder, int limit, int offset) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<?> cq = cb.createQuery(entity);

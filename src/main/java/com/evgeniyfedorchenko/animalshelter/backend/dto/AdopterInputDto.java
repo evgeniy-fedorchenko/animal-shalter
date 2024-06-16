@@ -15,7 +15,7 @@ import lombok.*;
 public class AdopterInputDto {
 
     @Positive(message = "Adopter's chatId must be positive")
-    private long chatId;
+    private String chatId;
 
     @NotBlank(message = "Adopter's name should not be blank")
     @Size(max = 50)

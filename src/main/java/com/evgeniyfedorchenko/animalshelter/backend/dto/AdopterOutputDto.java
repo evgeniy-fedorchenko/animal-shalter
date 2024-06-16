@@ -10,7 +10,7 @@ import lombok.*;
 public class AdopterOutputDto {
 
     private long id;
-    private long chatId;
+    private String chatId;
     private String name;
     private String phoneNumber;
     private int assignedReportsQuantity;

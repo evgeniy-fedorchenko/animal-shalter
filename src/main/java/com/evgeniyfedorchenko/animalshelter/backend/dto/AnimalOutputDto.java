@@ -15,7 +15,7 @@ public class AnimalOutputDto {
     private boolean isAdult;
     private Animal.Type type;
     private long adopterId;
-    private long adopterChatId;
+    private String adopterChatId;
     private String adopterName;
 
 }

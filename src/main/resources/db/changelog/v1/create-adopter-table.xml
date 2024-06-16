@@ -22,7 +22,7 @@
                     nullable="false"
                 />
             </column>
-            <column name="chat_id" type="bigint">
+            <column name="chat_id" type="varchar(19)">
                 <constraints
                     unique="true"
                     nullable="false"

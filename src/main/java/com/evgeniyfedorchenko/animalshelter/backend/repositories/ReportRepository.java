@@ -22,5 +22,6 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     void updateReportsVerifiedStatus(@Param("ids") List<Long> ids);
 
     @Query("SELECT r FROM Report r WHERE r.adopter.chatId = :adopterChatId ORDER BY r.sendingAt DESC")
-    Optional<Report> findNewestReportByAdopterChatId(Long adopterChatId);
+    Optional<Report> findNewestReportByAdopterChatId(String adopterChatId);
+
 }

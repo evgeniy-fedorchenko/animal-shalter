@@ -24,12 +24,12 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private final MainHandler mainHandler;
     private final TelegramExecutor telegramExecutor;
-    private final RedisTemplate<Long, Long> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
 
     public TelegramBot(@Value("${telegram.bot.token}") String botToken,
                        MainHandler mainHandler,
                        TelegramExecutor telegramExecutor,
-                       RedisTemplate<Long, Long> redisTemplate) {
+                       RedisTemplate<String, String> redisTemplate) {
         super(botToken);
         this.mainHandler = mainHandler;
         this.telegramExecutor = telegramExecutor;
@@ -43,7 +43,6 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     /**
      * Метод получения сообщений непосредственно с серверов Telegram, а так же их маршрутизации по методам обработки
-     *
      * @param update корневой объект, содержащий всю информацию о пришедшем обновлении
      */
     @Override
@@ -51,12 +50,12 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         if (update != null) {
 
-            log.info("Processing has BEGUN for updateID {}", update.getUpdateId());
+            log.debug("Processing has BEGUN for updateID {}", update.getUpdateId());
 
             PartialBotApiMethod<? extends Serializable> messToSend = distributeUpdate(update);
             Optional.ofNullable(messToSend).ifPresent(telegramExecutor::send);
 
-            log.info("Processing has successfully ENDED for updateID {}", update.getUpdateId());
+            log.debug("Processing has successfully ENDED for updateID {}", update.getUpdateId());
         }
     }
 
@@ -65,10 +64,10 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             Message message = update.getMessage();
 
-            Long specialBehaviorId = redisTemplate.opsForValue().get(message.getChatId());
+            String specialBehaviorId = redisTemplate.opsForValue().get(String.valueOf(message.getChatId()));
             if (specialBehaviorId != null) {
-                return specialBehaviorId > 0
-                        ? mainHandler.communicationWithVolunteer(message)
+                return Long.parseLong(specialBehaviorId) > 0
+                        ? mainHandler.chattingWithVolunteerProcess(message, specialBehaviorId)
                         : mainHandler.sendReportProcess(message, specialBehaviorId);
             }
 

@@ -62,7 +62,7 @@ public class TelegramExecutor extends DefaultAbsSender {
     public Optional<Pair<byte[], MediaType>> getPhotoDataPair(PhotoSize photo) {
 
         try (InputStream is = downloadFileAsStream(execute(new GetFile(photo.getFileId())))) {
-//             TODO 10.06.2024 21:18 - пока поставим заглушку на content-type, пока непонятно как его определять
+//            пока поставим заглушку на content-type, пока непонятно как его определять
             return Optional.of(Pair.of(is.readAllBytes(), MediaType.IMAGE_PNG));
 
         } catch (TelegramApiException | IOException ex) {

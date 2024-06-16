@@ -20,5 +20,5 @@ public interface AdopterService {
 
     void addTrialAdopter(Message message);
 
-    boolean existAdopterWithChatId(Long chatId);
+    boolean existAdopterWithChatId(String chatId);
 }

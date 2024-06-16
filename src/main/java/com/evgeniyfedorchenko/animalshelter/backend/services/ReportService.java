@@ -1,11 +1,14 @@
 package com.evgeniyfedorchenko.animalshelter.backend.services;
 
 import com.evgeniyfedorchenko.animalshelter.backend.dto.ReportOutputDto;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.report.SendingReportPart;
+import com.evgeniyfedorchenko.animalshelter.backend.entities.Adopter;
+import com.evgeniyfedorchenko.animalshelter.backend.entities.Report;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.report.ReportPart;
 import jakarta.annotation.Nullable;
 import org.springframework.data.util.Pair;
 import org.springframework.http.MediaType;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -20,9 +23,14 @@ public interface ReportService {
 
     Optional<Pair<byte[], MediaType>> getPhoto(Long id);
 
-    List<SendingReportPart> checkUnsentReportParts(Long chatId);
+    List<ReportPart> checkUnsentReportParts(String chatId);
 
-    void acceptReportPart(SendingReportPart specialBehaviorId, String text, Long chatId, @Nullable MediaType mediaType);
+    void acceptReportPart(ReportPart specialBehaviorId, byte[] reportPartData, String chatId, @Nullable MediaType mediaType);
 
-    void acceptPhoto(Pair<byte[], MediaType> photoDataPair, Long chatId);
+    default void linkIfFalse(Adopter adopter, Report report, boolean condition) {
+        if (!condition) {
+            adopter.addReport(report);
+            report.setSendingAt(Instant.now());
+        }
+    }
 }
