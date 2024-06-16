@@ -1,25 +1,33 @@
-package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.report;
+package com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.report;
 
 import com.evgeniyfedorchenko.animalshelter.backend.services.ReportService;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageModel;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageUtils;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.Callback;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageModel;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageUtils;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.SimpleApplicable;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
-import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageData.*;
+import static com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageData.*;
 
 @AllArgsConstructor
 @Component("SendReport")
-public class SendReport implements Callback {
+public class SendReport implements SimpleApplicable {
 
     private final ReportService reportService;
+    private final SendReportEnd sendReportEnd;
+
     @Override
-    public EditMessageText apply(Long chatId, Integer messageId) {
+    public SendMessage apply(String chatId) {
+
+        List<ReportPart> unsentParts = reportService.checkUnsentReportParts(chatId);
+        if (unsentParts.isEmpty()) {
+            return sendReportEnd.apply(chatId);
+        }
 
         Map<String, String> keyboardData = new LinkedHashMap<>();
         keyboardData.put("Прислать рацион питания",   SEND_DIET.getCallbackData());
@@ -31,16 +39,10 @@ public class SendReport implements Callback {
         MessageUtils messageUtils = new MessageUtils();
         MessageModel messageModel = MessageModel.builder()
                 .chatId(chatId)
-                .messageId(messageId)
                 .messageData(SEND_REPORT)
                 .keyboardData(keyboardData)
                 .build();
 
-        return messageUtils.applyCallback(messageModel);
-    }
-
-    private boolean checkThisDay() {
-//        reportService.
-        return false;
+        return messageUtils.applySimpled(messageModel);
     }
 }

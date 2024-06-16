@@ -1,7 +1,6 @@
-package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons;
+package com.evgeniyfedorchenko.animalshelter.telegram.handler;
 
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.MainHandler;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.Callback;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.Callback;
 import jakarta.annotation.Nullable;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,7 +14,7 @@ import java.util.Map;
  * и формирования объекта {@link SendMessage}, который может быть отправлен напрямую через Telegram
  *
  * @apiNote Чтобы преобразовать модель в объект сообщения {@code SendMessage},
- * используйте {@link MessageUtils#applyCommand(MessageModel)} или {@link MessageUtils#applyCallback(MessageModel)}
+ * используйте {@link MessageUtils#applySimpled(MessageModel)} или {@link MessageUtils#applyCallback(MessageModel)}
  */
 @Getter
 @Builder
@@ -24,7 +23,7 @@ public class MessageModel {
     /**
      * Идентификатор чата, для которого предназначено будущее сообщение
      */
-    private final Long chatId;
+    private final String chatId;
 
     /**
      * Идентификатор сообщения, для которого предназначено будущее сообщение.

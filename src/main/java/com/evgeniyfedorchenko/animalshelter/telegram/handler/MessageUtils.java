@@ -1,4 +1,4 @@
-package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons;
+package com.evgeniyfedorchenko.animalshelter.telegram.handler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -39,7 +39,7 @@ public class MessageUtils {
      * @param messageModel Объект с данными для создания сообщения
      * @return Объект, готовый к отправке через Телеграм-бота
      */
-    public SendMessage applyCommand(MessageModel messageModel) {
+    public SendMessage applySimpled(MessageModel messageModel) {
 
         SendMessage sendMessage = new SendMessage(
                 String.valueOf(messageModel.getChatId()),

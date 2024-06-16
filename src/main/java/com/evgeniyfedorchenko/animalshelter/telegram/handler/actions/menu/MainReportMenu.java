@@ -1,15 +1,15 @@
-package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.report;
+package com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.menu;
 
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageModel;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageUtils;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.Callback;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageModel;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageUtils;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.Callback;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageData.*;
+import static com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageData.*;
 
 @Component("MainReportMenu")
 public class MainReportMenu implements Callback {
@@ -17,7 +17,7 @@ public class MainReportMenu implements Callback {
 
 
     @Override
-    public EditMessageText apply(Long chatId, Integer messageId) {
+    public EditMessageText apply(String chatId, Integer messageId) {
 
         Map<String, String> keyboardData = new LinkedHashMap<>();
 

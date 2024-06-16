@@ -1,7 +1,8 @@
-package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons;
+package com.evgeniyfedorchenko.animalshelter.telegram.handler;
 
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.*;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.report.*;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.VolunteerChattingEnd;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.menu.*;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.report.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -147,11 +148,11 @@ public enum MessageData {
             """),
 
 //    Кнопка юзера, по нажатию он получает это сообщение
-    ENDING_VOLUNTEER_CHAT("EndingVolunteerChat", "Диалог завершен"),
+    ENDING_VOLUNTEER_CHAT("EndingVolunteerChat", "Завершить диалог"),
 
     // TODO 12.06.2024 15:07 - Потестить эти две кнопки
 //    Колбек для волонтера, показывается ему, когда юзер завершил диалог
-    ENDED_VOLUNTEER_CHAT(EndingVolunteerChat.class.getSimpleName(),
+    ENDED_VOLUNTEER_CHAT(VolunteerChattingEnd.class.getSimpleName(),
             "Диалог завершен. Вы можете продолжить пользоваться ботом в обычном режиме"),
 
     SEND_REPORT(SendReport.class.getSimpleName(), """

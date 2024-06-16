@@ -1,21 +1,22 @@
-package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks;
+package com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.menu;
 
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageModel;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageUtils;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageModel;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageUtils;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.Callback;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageData.MAIN_HOW_TAKE_ANIMAL;
-import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageData.TRANSPORT_PET;
+import static com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageData.MAIN_HOW_TAKE_ANIMAL;
+import static com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageData.TRANSPORT_PET;
 
 @Component("TransportPet")
 public class TransportPet implements Callback {
 
     @Override
-    public EditMessageText apply(Long chatId, Integer messageId) {
+    public EditMessageText apply(String chatId, Integer messageId) {
 
         Map<String, String> keyboardData = new LinkedHashMap<>();
         keyboardData.put("Назад", MAIN_HOW_TAKE_ANIMAL.getCallbackData());

@@ -1,20 +1,21 @@
-package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.commands;
+package com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.commands;
 
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageModel;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageUtils;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageModel;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageUtils;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.SimpleApplicable;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageData.*;
+import static com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageData.*;
 
 @Component("/start")
-public class Start implements Command {
+public class Start implements SimpleApplicable {
 
     @Override
-    public SendMessage apply(Long chatId) {
+    public SendMessage apply(String chatId) {
 
         Map<String, String> keyboardData = new LinkedHashMap<>();
 
@@ -29,7 +30,7 @@ public class Start implements Command {
                 .keyboardData(keyboardData)
                 .build();
 
-        return messageUtils.applyCommand(messageModel);
+        return messageUtils.applySimpled(messageModel);
 
     }
 }

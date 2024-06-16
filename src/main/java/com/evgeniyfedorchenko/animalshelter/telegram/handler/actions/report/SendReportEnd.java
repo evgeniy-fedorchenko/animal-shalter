@@ -1,8 +1,8 @@
-package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.report;
+package com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.report;
 
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageModel;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageUtils;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.commands.Command;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageModel;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageUtils;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.SimpleApplicable;
 import lombok.AllArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -11,16 +11,17 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageData.SEND_REPORT_END;
-import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageData.START;
+import static com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageData.SEND_REPORT_END;
+import static com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageData.START;
 
 @AllArgsConstructor
 @Component("SendReportEnd")
-public class SendReportEnd implements Command {
+public class SendReportEnd implements SimpleApplicable {
 
-    private final RedisTemplate<Long, Long> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
+
     @Override
-    public SendMessage apply(Long chatId) {
+    public SendMessage apply(String chatId) {
 
         redisTemplate.delete(chatId);
 
@@ -34,6 +35,6 @@ public class SendReportEnd implements Command {
                 .keyboardData(keyboardData)
                 .build();
 
-        return messageUtils.applyCommand(messageModel);
+        return messageUtils.applySimpled(messageModel);
     }
 }

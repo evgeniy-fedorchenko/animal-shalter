@@ -1,14 +1,15 @@
-package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks;
+package com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.menu;
 
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageModel;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageUtils;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.commands.Start;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageModel;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageUtils;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.Callback;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.commands.Start;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 
-import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageData.START;
+import static com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageData.START;
 
 @Component("Start")
 public class BackToStart implements Callback {
@@ -16,7 +17,7 @@ public class BackToStart implements Callback {
 
 
     @Override
-    public EditMessageText apply(Long chatId, Integer messageId) {
+    public EditMessageText apply(String chatId, Integer messageId) {
 
         MessageUtils messageUtils = new MessageUtils();
         MessageModel messageModel = MessageModel.builder()

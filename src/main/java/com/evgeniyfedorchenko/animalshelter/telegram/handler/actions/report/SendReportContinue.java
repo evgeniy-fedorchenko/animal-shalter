@@ -1,9 +1,9 @@
-package com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.callbacks.report;
+package com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.report;
 
 import com.evgeniyfedorchenko.animalshelter.backend.services.ReportService;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageModel;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageUtils;
-import com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.commands.Command;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageModel;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageUtils;
+import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.SimpleApplicable;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -12,20 +12,20 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageData.SEND_REPORT_CONTINUE_PATTERN;
-import static com.evgeniyfedorchenko.animalshelter.telegram.handler.buttons.MessageData.SEND_REPORT_END;
+import static com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageData.SEND_REPORT_CONTINUE_PATTERN;
+import static com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageData.SEND_REPORT_END;
 
 @AllArgsConstructor
 @Component("SendReportContinue")
-public class SendReportContinue implements Command {
+public class SendReportContinue implements SimpleApplicable {
 
     private final ReportService reportService;
     private final SendReportEnd sendReportEnd;
 
     @Override
-    public SendMessage apply(Long chatId) {
+    public SendMessage apply(String chatId) {
 
-        List<SendingReportPart> unsentParts = reportService.checkUnsentReportParts(chatId);
+        List<ReportPart> unsentParts = reportService.checkUnsentReportParts(chatId);
         if (unsentParts.isEmpty()) {
             return sendReportEnd.apply(chatId);
         }
@@ -41,6 +41,6 @@ public class SendReportContinue implements Command {
                 .keyboardData(keyboardData)
                 .build();
 
-        return messageUtils.applyCommand(messageModel);
+        return messageUtils.applySimpled(messageModel);
     }
 }
