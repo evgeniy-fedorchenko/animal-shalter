@@ -140,10 +140,12 @@ public class AnimalControllerTest {
                 randomSavedAnimal.getId());
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        AnimalOutputDto randomSavedAnimalODto = animalMapper.toOutputDto(randomSavedAnimal);
         assertThat(responseEntity.getBody())
                 .isNotNull()
                 .usingRecursiveComparison()
-                .isEqualTo(animalMapper.toOutputDto(randomSavedAnimal));
+                .isEqualTo(randomSavedAnimalODto);
+        assertThat(responseEntity.getBody().hashCode()).isEqualTo(randomSavedAnimalODto.hashCode());
     }
 
     @Test

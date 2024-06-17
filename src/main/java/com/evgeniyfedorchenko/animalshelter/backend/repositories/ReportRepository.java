@@ -16,8 +16,21 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     @Query("SELECT report FROM Report report WHERE report.verified = false ORDER BY report.sendingAt ASC")
     List<Report> findOldestUnviewedReports(Pageable pageable);
 
+
+    /**
+     * Насчет аннотации @Transactional - поскольку это обращение в бд выполняется в другом потоке, то там предыдущая
+     * транзакция недоступна. Spring не распространяет транзакционный контекст между потоками. В Spring все транзакции
+     * в конечно счете попадают в какой-то TransactionManager, который изолирует их между потоками, тут только если
+     * вручную заниматься открытием-закрытием транзакций, но я не хочу.
+     *
+     * Например, вот один из ресурсов, который это демонстрирует:
+     * https://stackoverflow.com/questions/30079486/spring-hibernate-transactions-joining-a-transaction-in-thread-b-created-in-a/30091149#30091149
+     * Это логично, ведь глобальное состояние в нескольких местах одновременно. Так что в будущем удалю асинхронку из
+     * того сервисного метода, где происходит это обращение к бд
+     * Аналогично для VolunteerRepository
+     */
     @Modifying(flushAutomatically = true, clearAutomatically = true)
-    @Transactional  // TODO 10.06.2024 00:22 - Написать комментарий для Димы, почему тут открывается транзакция
+    @Transactional
     @Query("UPDATE Report r SET r.verified = true WHERE r.id IN (:ids)")
     void updateReportsVerifiedStatus(@Param("ids") List<Long> ids);
 

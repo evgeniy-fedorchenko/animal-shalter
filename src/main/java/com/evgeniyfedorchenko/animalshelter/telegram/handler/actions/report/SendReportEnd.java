@@ -20,6 +20,13 @@ public class SendReportEnd implements SimpleApplicable {
 
     private final RedisTemplate<String, String> redisTemplate;
 
+    /**
+     * Метод для создания сообщения последнего этапа процесса получения отчета от юзера. Происходит удаление
+     * его из кеша {@code RedisTemplate} и далее он считается обычным пользователем, способным пользоваться
+     * на равне с другими
+     * @param chatId Id чата, для которого будет создан возвращаемый объект
+     * @return Готовый объект сообщения для отправки посредством телеграм-бота
+     */
     @Override
     public SendMessage apply(String chatId) {
 

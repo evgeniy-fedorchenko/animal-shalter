@@ -19,6 +19,12 @@ public class VolunteerChatting {
     private final TelegramExecutor telegramExecutor;
     private final RedisTemplate<String, String> redisTemplate;
 
+    /**
+     * Метод для первого коннекта волонтера и юзера, который позвал волонтера. Происходит поиск свободного
+     * волонтера и при нахождении такого, ему отправляется уведомляющее сообщение.
+     * Так же происходит кеширование их {@code chatId} для предстоящего общения
+     * @param userChatId телеграм-идентификатор юзера, которому требуется помощь
+     */
     public void callVolunteer(String userChatId) {
 
         // TODO 10.06.2024 23:12 - Добавить: если волонтера не нашлось - то еще в сервисе опрашивать бд раз в минуту

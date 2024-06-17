@@ -1,8 +1,6 @@
 package com.evgeniyfedorchenko.animalshelter.backend.repositories;
 
 import com.evgeniyfedorchenko.animalshelter.admin.controllers.SortOrder;
-import com.evgeniyfedorchenko.animalshelter.backend.entities.Adopter;
-import com.evgeniyfedorchenko.animalshelter.backend.entities.Report;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import lombok.AllArgsConstructor;
@@ -11,7 +9,6 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @AllArgsConstructor
@@ -35,7 +32,6 @@ public class RepositoryUtils {
      * @param offset Количество элементов, которые нужно пропустить (для пагинации)
      * @return Список объектов, найденных и отсортированных в соответствии с указанными параметрами
      */
-//    @Transactional(readOnly = true)
     public List<?> searchEntities(Class<?> entity, String sortParam, SortOrder sortOrder, int limit, int offset) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<?> cq = cb.createQuery(entity);
@@ -125,7 +121,6 @@ public class RepositoryUtils {
         return false;
     }
 
-
     /**
      * Метод проверяет, что поле представленное в {@code fieldName} содержит сущность и само находится
      * в классе сущности. А так же что поле помечено аннотацией отношений (ассоциаций) между сущностями
@@ -148,27 +143,5 @@ public class RepositoryUtils {
         } catch (NoSuchFieldException _) {
             return false;
         }
-    }
-
-    public List<String> get() {
-
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<String> query = cb.createQuery(String.class);
-
-        Root<Adopter> adopter = query.from(Adopter.class);
-        Join<Adopter, Report> reports = adopter.join("reports", JoinType.INNER);
-
-        Predicate acceptedReports = cb.and(
-                cb.equal(reports.get("accepted"), true),
-                cb.greaterThanOrEqualTo(reports.get("sendingAt"), cb.literal(LocalDateTime.now().minusDays(30)))
-        );
-
-        // Используем having для фильтрации по агрегированным значениям
-        query.select(adopter.get("chatId"))
-                .where(acceptedReports)
-                .groupBy(adopter.get("chatId"))
-                .having(cb.ge(cb.count(reports), 27));
-
-        return entityManager.createQuery(query).getResultList();
     }
 }

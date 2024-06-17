@@ -6,6 +6,10 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+/**
+ * Сущность, представляющая волонтера для общения с пользователями телеграм бота, когда те
+ * зовут волонтеров на помощь
+ */
 @Getter
 @Setter
 @NoArgsConstructor

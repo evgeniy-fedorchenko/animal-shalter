@@ -319,7 +319,7 @@ public class TestUtils<E> {
         }
     }
 
-    public Map<Adopter, Integer> generateRepositoriesConditionForShedulingTest() {
+    public Map<Adopter, Integer> generateRepositoriesConditionForSchedulingTest() {
         Map<Adopter, Integer> stats = new HashMap<>();
 
 //        Подготовка: 10 адоптеров, у каждого 29 или 30 принятых отчетов. Т.е. отправлять

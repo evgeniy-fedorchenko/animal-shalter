@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import static com.evgeniyfedorchenko.animalshelter.telegram.handler.MessageData.ENDING_VOLUNTEER_CHAT;
 
+
 @Slf4j
 @Component("VolunteerChattingEnd")
 @AllArgsConstructor
@@ -21,6 +22,11 @@ public class VolunteerChattingEnd implements SimpleApplicable {
     private final TelegramExecutor telegramExecutor;
     private final TelegramService telegramService;
 
+    /**
+     * Метод выполняет логику по завершению общения юзера и волонтера.
+     * Происходит очищение кеша {@code RedisTemplate} для их идентификаторов,
+     * а так же им отправляются соответствующие сообщения
+     */
     @Override
     public SendMessage apply(String chatId) {
 

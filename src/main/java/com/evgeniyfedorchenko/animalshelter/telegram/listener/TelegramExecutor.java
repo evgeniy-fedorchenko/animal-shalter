@@ -24,9 +24,6 @@ import java.util.Optional;
 @Component
 public class TelegramExecutor extends DefaultAbsSender {
 
-    @Value("${telegram.bot.token}")
-    private String botToken;
-
     protected TelegramExecutor(@Value("${telegram.bot.token}") String botToken) {
         super(new DefaultBotOptions(), botToken);
     }
@@ -59,6 +56,13 @@ public class TelegramExecutor extends DefaultAbsSender {
         }
     }
 
+    /**
+     * Метод для непосредственного получения байтов фотографии по ее объекту {@link PhotoSize}
+     * @param photo объект для которого нужно получить байтовую информацию
+     * @return объект {@link Pair}, где первый элемент - это массив байт целевой фотографии,
+     *         а второй - объект, содержащий информацию о типе контента ({@code MediaType})
+     *         целевой фотографии
+     */
     public Optional<Pair<byte[], MediaType>> getPhotoDataPair(PhotoSize photo) {
 
         try (InputStream is = downloadFileAsStream(execute(new GetFile(photo.getFileId())))) {

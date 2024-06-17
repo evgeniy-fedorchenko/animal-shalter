@@ -48,7 +48,6 @@ public class ReportServiceImpl implements ReportService {
 
         futureList.thenAccept(list -> {
             List<Long> idsForUpdate = list.stream().map(ReportOutputDto::getId).toList();
-            System.out.println(idsForUpdate);
             reportRepository.updateReportsVerifiedStatus(idsForUpdate);
         });
         return futureList;
@@ -96,10 +95,14 @@ public class ReportServiceImpl implements ReportService {
 
         /* Нужно void-действие для случая, когда report.get...() != null, а такой есть только
            в .ifPresentOrElse(). В .orElse(), .orElseGet() неподходящие действия */
-        Optional.ofNullable(report.getDiet())          .ifPresentOrElse(_ -> {}, () -> unsentParts.add(DIET));
-        Optional.ofNullable(report.getHealth())        .ifPresentOrElse(_ -> {}, () -> unsentParts.add(HEALTH));
-        Optional.ofNullable(report.getChangeBehavior()).ifPresentOrElse(_ -> {}, () -> unsentParts.add(BEHAVIOR));
-        Optional.ofNullable(report.getPhotoData())     .ifPresentOrElse(_ -> {}, () -> unsentParts.add(PHOTO));
+        Optional.ofNullable(report.getDiet()).ifPresentOrElse(_ -> {
+        }, () -> unsentParts.add(DIET));
+        Optional.ofNullable(report.getHealth()).ifPresentOrElse(_ -> {
+        }, () -> unsentParts.add(HEALTH));
+        Optional.ofNullable(report.getChangeBehavior()).ifPresentOrElse(_ -> {
+        }, () -> unsentParts.add(BEHAVIOR));
+        Optional.ofNullable(report.getPhotoData()).ifPresentOrElse(_ -> {
+        }, () -> unsentParts.add(PHOTO));
 
         this.linkIfFalse(adopter, report, report.hasAdopter());
 
@@ -121,10 +124,10 @@ public class ReportServiceImpl implements ReportService {
                 .orElseThrow(() -> new EntityNotFoundException("Adopter of this report not found"));
 
         switch (reportPart) {
-            case DIET     -> report.setDiet(new String(reportPartData, StandardCharsets.UTF_8));
-            case HEALTH   -> report.setHealth(new String(reportPartData, StandardCharsets.UTF_8));
+            case DIET -> report.setDiet(new String(reportPartData, StandardCharsets.UTF_8));
+            case HEALTH -> report.setHealth(new String(reportPartData, StandardCharsets.UTF_8));
             case BEHAVIOR -> report.setChangeBehavior(new String(reportPartData, StandardCharsets.UTF_8));
-            case PHOTO    -> {
+            case PHOTO -> {
                 report.setPhotoData(reportPartData);
                 if (mediaType != null) {
                     report.setMediaType(mediaType.getType());

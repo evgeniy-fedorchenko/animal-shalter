@@ -106,7 +106,7 @@ class TelegramServiceImplTest {
     @Test
     void makeDecisionAboutAdaptationTest() {
 //        В мапе хранится: ключ - объект Adopter, значение - кол-во его отчетов
-        Map<Adopter, Integer> stats = testUtils.generateRepositoriesConditionForShedulingTest();
+        Map<Adopter, Integer> stats = testUtils.generateRepositoriesConditionForSchedulingTest();
 
         telegramService.makeDecisionAboutAdaptation();
 

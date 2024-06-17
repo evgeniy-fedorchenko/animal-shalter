@@ -124,13 +124,15 @@ class AdopterControllerTest {
 
 //        Проверка ответа от сервера
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        AdopterOutputDto specialAdopterODto = adopterMapper.toOutputDto(specialAdopter);
         assertThat(responseEntity.getBody())
                 .isNotNull()
                 .usingRecursiveComparison()
                 .ignoringFields("id", "phoneNumber")
-                .isEqualTo(adopterMapper.toOutputDto(specialAdopter));
+                .isEqualTo(specialAdopterODto);
 
         assertThatCode(() -> log.trace(responseEntity.getBody().toString())).doesNotThrowAnyException();
+        assertThat(responseEntity.getBody().hashCode()).isNotEqualTo(specialAdopterODto.hashCode());
 
 //        Проверка, что Adopter сохранился в БД
         Optional<Adopter> adopterFromDb = adopterRepository.findById(responseEntity.getBody().getId());

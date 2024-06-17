@@ -150,10 +150,12 @@ public class ReportControllerTest {
                 randomSavedReport.getId());
 
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        ReportOutputDto randomSavedReportODto = reportMapper.toDto(randomSavedReport);
         assertThat(responseEntity.getBody())
                 .isNotNull()
                 .usingRecursiveComparison()
-                .isEqualTo(reportMapper.toDto(randomSavedReport));
+                .isEqualTo(randomSavedReportODto);
+        assertThat(responseEntity.getBody().hashCode()).isEqualTo(randomSavedReportODto.hashCode());
     }
 
     @Test

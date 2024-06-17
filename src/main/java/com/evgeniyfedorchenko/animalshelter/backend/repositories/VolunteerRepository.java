@@ -10,10 +10,8 @@ import java.util.Optional;
 
 public interface VolunteerRepository extends JpaRepository<Volunteer, Long> {
 
-    @Query("SELECT v.chatId FROM Volunteer v WHERE v.free = true")
-    Optional<String> getChatIdFreeVolunteer();
-
     Optional<Volunteer> findFirstByFreeIsTrue();
+
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Transactional
     @Query("UPDATE Volunteer v SET v.free = :status WHERE v.chatId = :chatId")

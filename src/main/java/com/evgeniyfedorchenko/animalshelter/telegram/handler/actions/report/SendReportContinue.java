@@ -22,6 +22,14 @@ public class SendReportContinue implements SimpleApplicable {
     private final ReportService reportService;
     private final SendReportEnd sendReportEnd;
 
+    /**
+     * Метод для создания сообщений для промежуточных этапов процесса получения отчета от пользователя.
+     * После инициирования юзером этого процесса, его {@code chatId} кешируется и он начинает попадать
+     * сразу в этот метод. Если все части отчета отправлены - формируется соответствующее сообщение. В противном
+     * случае ему показывается информация о том, что еще нужно отправить
+     * @param chatId Id чата, для которого будет создан возвращаемый объект
+     * @return Готовый объект сообщения для отправки посредством телеграм-бота
+     */
     @Override
     public SendMessage apply(String chatId) {
 
@@ -30,6 +38,7 @@ public class SendReportContinue implements SimpleApplicable {
             return sendReportEnd.apply(chatId);
         }
 
+        // TODO 17.06.2024 00:07 - настроить форматирование для еще актуальных кнопок
         Map<String, String> keyboardData = new LinkedHashMap<>();
         unsentParts.forEach(part -> keyboardData.put(part.getButtonText(), part.getMessageData().getCallbackData()));
         keyboardData.put("Больше не хочу ничего присылать", SEND_REPORT_END.getCallbackData());

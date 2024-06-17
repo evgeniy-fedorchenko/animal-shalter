@@ -21,6 +21,12 @@ public class SendReport implements SimpleApplicable {
     private final ReportService reportService;
     private final SendReportEnd sendReportEnd;
 
+    /**
+     * Метод для формирования первого сообщения процесса отправки отчета. Первоначальная настройка
+     * (валидация, кеширование, работа с фото) должна быть уже произведена
+     * @param chatId Id чата, для которого будет создан возвращаемый объект
+     * @return Готовый объект сообщения для отправки посредством телеграм-бота
+     */
     @Override
     public SendMessage apply(String chatId) {
 
