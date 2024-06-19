@@ -3,6 +3,7 @@ package com.evgeniyfedorchenko.animalshelter.backend.services;
 import com.evgeniyfedorchenko.animalshelter.admin.controllers.SortOrder;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AnimalInputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AnimalOutputDto;
+import com.evgeniyfedorchenko.animalshelter.backend.entities.Animal;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,4 +20,6 @@ public interface AnimalService {
     CompletableFuture<Boolean> assignAnimalToAdopter(long adopterId, long animalId);
 
     boolean deleteAnimalById(long id);
+
+    Animal getFreeAnimal();
 }

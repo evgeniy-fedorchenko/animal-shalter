@@ -3,85 +3,92 @@ package com.evgeniyfedorchenko.animalshelter;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Adopter;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Animal;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Report;
+import com.evgeniyfedorchenko.animalshelter.backend.entities.Volunteer;
 import net.datafaker.Faker;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-// todo Создать второй набор констант - бОльшее их количество и разнообразие, скажем штук по 50 и добавить возможность тестирования на этом наборе
+
 public class Constants {
 
     private static final Faker FAKER = new Faker();
 
-//    todo Убрать отсюда объявление этих 100500 констант
-    public static final Adopter ADOPTER_1 = new Adopter();
-    public static final Adopter ADOPTER_2 = new Adopter();
-    public static final Adopter ADOPTER_3 = new Adopter();
-    public static final Adopter ADOPTER_4 = new Adopter();
-    public static final Adopter ADOPTER_5 = new Adopter();
-    public static final Adopter UNSAVED_ADOPTER = new Adopter();
+    public static List<Adopter> generateTestAdoptersInCountOf(int count) {
 
-    public static final Animal ANIMAL_1 = new Animal();
-    public static final Animal ANIMAL_2 = new Animal();
-    public static final Animal ANIMAL_3 = new Animal();
-    public static final Animal ANIMAL_4 = new Animal();
-    public static final Animal ANIMAL_5 = new Animal();
-    public static final Animal UNSAVED_ANIMAL = new Animal();
+        List<Adopter> testAdopters = new ArrayList<>(count);
 
-    public static final Report REPORT_1 = new Report();
-    public static final Report REPORT_2 = new Report();
-    public static final Report REPORT_3 = new Report();
-    public static final Report REPORT_4 = new Report();
-    public static final Report REPORT_5 = new Report();
-    public static final Report UNSAVED_REPORT = new Report();
-
-    public static final List<Adopter> TEST_5_ADOPTERS = new ArrayList<>(List.of(
-            ADOPTER_1, ADOPTER_2, ADOPTER_3, ADOPTER_4, ADOPTER_5));
-    public static final List<Animal> TEST_5_ANIMALS = new ArrayList<>(List.of(
-            ANIMAL_1, ANIMAL_2, ANIMAL_3, ANIMAL_4, ANIMAL_5));
-    public static final List<Report> TEST_5_REPORTS = new ArrayList<>(List.of(
-            REPORT_1, REPORT_2, REPORT_3, REPORT_4, REPORT_5));
-
-    public static void testConstantsInitialize() {
-        adopterConstantsInitialize();
-        animalConstantsInitialize();
-        reportConstantsInitialize();
-    }
-
-    private static void adopterConstantsInitialize() {
-        Stream.of(ADOPTER_1, ADOPTER_2, ADOPTER_3, ADOPTER_4, ADOPTER_5, UNSAVED_ADOPTER)
+        Stream.generate(Adopter::new)
+                .limit(count)
                 .forEach(adopter -> {
-                    adopter.setChatId(FAKER.random().nextLong(1L, 9999999999L));
+                    adopter.setChatId(String.valueOf(FAKER.random().nextLong(1L, 9999999999L)));
                     adopter.setName(FAKER.letterify("adopterName?????"));
                     adopter.setPhoneNumber("79" + FAKER.number().digits(9));
                     adopter.setAssignedReportsQuantity(30);
                     adopter.setReports(new ArrayList<>());
                     adopter.setAnimal(null);
+
+                    testAdopters.add(adopter);
                 });
+
+        return testAdopters;
     }
 
-    private static void animalConstantsInitialize() {
-        Stream.of(ANIMAL_1, ANIMAL_2, ANIMAL_3, ANIMAL_4, ANIMAL_5, UNSAVED_ANIMAL)
+    public static List<Animal> generateTestAnimalsInCountOf(int count) {
+
+        List<Animal> testAnimals = new ArrayList<>(count);
+
+        Stream.generate(Animal::new)
+                .limit(count)
                 .forEach(animal -> {
                     animal.setName(FAKER.letterify("animalName?????"));
                     animal.setAdult(FAKER.random().nextBoolean());
                     animal.setType(FAKER.random().nextBoolean() ? Animal.Type.CAT : Animal.Type.DOG);
                     animal.setAdopter(null);
+
+                    testAnimals.add(animal);
                 });
+
+        return testAnimals;
     }
 
-    private static void reportConstantsInitialize() {
-        Stream.of(REPORT_1, REPORT_2, REPORT_3, REPORT_4, REPORT_5, UNSAVED_REPORT)
+    public static List<Report> generateTestReportsInCountOf(int count) {
+
+        List<Report> testReports = new ArrayList<>(count);
+
+        Stream.generate(Report::new)
+                .limit(count)
                 .forEach(report -> {
                     report.setDiet(FAKER.letterify("reportDiet?????"));
                     report.setHealth(FAKER.letterify("reportHealth?????"));
                     report.setChangeBehavior(FAKER.letterify("reportCB?????"));
                     report.setPhotoData(null);
+                    report.setMediaType(null);
                     report.setSendingAt(Instant.now());
                     report.setVerified(FAKER.random().nextBoolean());
                     report.setAccepted(false);
                     report.setAdopter(null);
+
+                    testReports.add(report);
                 });
+
+        return testReports;
+    }
+
+    public static List<Volunteer> generateTestVolunteersInCountOf(int count, double probabilityFree) {
+        List<Volunteer> testVolunteers = new ArrayList<>();
+
+        Stream.generate(Volunteer::new)
+                .limit(count)
+                .forEach(volunteer -> {
+                    volunteer.setName(FAKER.letterify("volunteerName?????"));
+                    volunteer.setChatId(String.valueOf(FAKER.random().nextLong(1L, 9999999999L)));
+                    volunteer.setFree(Math.random() < probabilityFree);
+
+                    testVolunteers.add(volunteer);
+                });
+
+        return testVolunteers;
     }
 }

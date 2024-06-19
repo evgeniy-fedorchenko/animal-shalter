@@ -3,6 +3,7 @@ package com.evgeniyfedorchenko.animalshelter.backend.services;
 import com.evgeniyfedorchenko.animalshelter.admin.controllers.SortOrder;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AdopterInputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AdopterOutputDto;
+import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,4 +17,8 @@ public interface AdopterService {
     List<AdopterOutputDto> searchAdopters(String sortParam, SortOrder sortOrder, int pageSize, int pageNumber);
 
     boolean deleteAdopter(long id);
+
+    void addTrialAdopter(Message message);
+
+    boolean existAdopterWithChatId(String chatId);
 }

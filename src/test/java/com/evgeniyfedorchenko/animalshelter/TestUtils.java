@@ -5,24 +5,35 @@ import com.evgeniyfedorchenko.animalshelter.backend.dto.AdopterInputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.AnimalInputDto;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Adopter;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Animal;
+import com.evgeniyfedorchenko.animalshelter.backend.repositories.AdopterRepository;
+import com.evgeniyfedorchenko.animalshelter.backend.repositories.AnimalRepository;
+import com.evgeniyfedorchenko.animalshelter.backend.repositories.ReportRepository;
+import com.evgeniyfedorchenko.animalshelter.backend.services.TelegramServiceImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.commons.lang3.function.TriConsumer;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.MaybeInaccessibleMessage;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.telegram.telegrambots.meta.api.objects.serialization.MaybeInaccessibleMessageDeserializer;
+import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -30,10 +41,12 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.IntStream;
+
+import static com.evgeniyfedorchenko.animalshelter.Constants.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Component
 public class TestUtils<E> {
@@ -42,19 +55,39 @@ public class TestUtils<E> {
 
     @PersistenceContext
     private EntityManager entityManager;
-
+    @Autowired
+    private AdopterRepository adopterRepository;
+    @Autowired
+    private AnimalRepository animalRepository;
+    @Autowired
+    private ReportRepository reportRepository;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Getter
     @AllArgsConstructor
     public enum Format {
-        //        ImageIO.write() не желает принимать "image/png", только "png"; аналогично с jpeg
+        // ImageIO.write() не желает принимать "image/png", только "png"; аналогично с jpeg
         PNG(MediaType.IMAGE_PNG_VALUE, "png"),
         JPG(MediaType.IMAGE_JPEG_VALUE, "jpg");
 
         private final String mediaType;
         private final String mediaTypeForImageIO;
-
     }
+
+    public final TriConsumer<Adopter, TelegramServiceImpl.AdaptationDecision, List<SendMessage>> matchFinder =
+            (adopter, decision, actualSentMessages) -> {
+
+//        Оставшийся после фильтрации "equals(chatId) && equals(text)" элемент - это именно тот который мы ожидаем
+                List<SendMessage> detected = actualSentMessages.stream()
+                        .filter(mess ->
+                                mess.getChatId().equals(adopter.getChatId())
+                                        && mess.getText().equals(decision.getMessage())
+                        ).toList();
+
+                assertThat(detected).hasSize(1);
+                actualSentMessages.remove(detected.getFirst());
+            };
 
     public AdopterInputDto toInputDto(Adopter adopter) {
         AdopterInputDto inputDto = new AdopterInputDto();
@@ -131,7 +164,6 @@ public class TestUtils<E> {
         return patchedRestTemplate;
     }
 
-
     /**
      * Метод для генерации изображения в виде байтового массива. Нужен для тестирования методов связанных
      * с изображениями. Массив байт не записывается в файл, а удерживается в памяти.
@@ -171,8 +203,9 @@ public class TestUtils<E> {
      * @param entityCollection коллекция сущностей для сравнения. Возвращаемое число
      *                         не будет равняться с id любой из этих сущностей
      * @return положительное число, не совпадающее ни с одним id переданных сущностей
-     * @throws IllegalArgumentException если переданная коллекция параметризована классом неизвестной сущности
-     * @throws NullPointerException     если переданная коллекция пуста или не инициализирована
+     * @throws IllegalStateException если переданная коллекция параметризована классом, не аннотированным {@link Entity}
+     * @throws NullPointerException  если переданная коллекция пуста или не инициализирована
+     * @throws RuntimeException      если в классе сущности не доступен метода {@code getId()}
      */
     public long getIdNonExistsIn(List<Object> entityCollection) {
 
@@ -201,27 +234,25 @@ public class TestUtils<E> {
         return nonExistId;
     }
 
-
     /**
      * Метод для получения объекта Update из файла json, находящегося в ресурсах. Если {@code withPhoto = true},
      * то {@code isCommand} не имеет значения
+     *
      * @param messText  Текст, который будет помещен в Update.getMessage().getText()
      * @param isCommand Указывает, что это команда бота или нет. Если установлено в {@code true}, то помимо прочего
      *                  из параметра {@code messText} будет сгенерирована соответствующая {@link MessageEntity}
      *                  и помещена в массив {@code Update.getMessage().getEntities()}.
      *                  Проверка на {@code isCommand} вернет {@code true}
-     * @param withPhoto Указывает должен присутствовать в сообщении {@code List<PhotoSize>}.
-     *                  Список в любом случае будет содержать один пустой объект
+     * @param withPhoto Указывает должен ли присутствовать в сообщении {@code List<PhotoSize>}.
+     *                  Список в этом случае будет содержать один пустой объект
      * @return Объект Update, настроенный по указанным параметрам
      */
     public Update getUpdateWithMessage(@Nullable String messText, boolean isCommand, boolean withPhoto) {
 
         Update update;
-        ObjectMapper objectMapper = new ObjectMapper();
-
         try {
             String json = Files.readString(new ClassPathResource("test-message-update.json").getFile().toPath());
-            if (messText == null ) {
+            if (messText == null) {
                 update = objectMapper.readValue(json, Update.class);
                 update.getMessage().setText(null);
 
@@ -238,12 +269,12 @@ public class TestUtils<E> {
             throw new RuntimeException("Could not read test-message-update.json", ex);
         }
 
-        /* Чтобы сработал метод Message.isCommand() нужно засетить
-           в update новую MessageEntity и указать что это "botCommand" */
         if (!isCommand) {
             return update;
         }
 
+        /* Чтобы сработал метод Message.isCommand() нужно засетить
+           в update новую MessageEntity и указать что это "botCommand" */
         MessageEntity botCommand = new MessageEntity("bot_command", 0, messText.length());
         botCommand.setText(messText);
         update.getMessage().setEntities(Collections.singletonList(botCommand));
@@ -252,13 +283,73 @@ public class TestUtils<E> {
 
     public Update getUpdateWithCallback(String callbackData) {
 
+        String fileName = "test-callback-update.json";
         try {
-            String json = Files.readString(new ClassPathResource("test-callback-update.json").getFile().toPath());
+            String json = Files.readString(new ClassPathResource(fileName).getFile().toPath());
             String replaced = json.replace("%toReplace%", callbackData);
-            return new ObjectMapper().readValue(replaced, Update.class);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            SimpleModule module = new SimpleModule();
+
+
+            module.addDeserializer(MaybeInaccessibleMessage.class, new MaybeInaccessibleMessageDeserializer());
+            objectMapper.registerModule(module);
+
+            return objectMapper.readValue(replaced, Update.class);
+
+        } catch (IOException ex) {
+            throw new RuntimeException("Could not read " + fileName, ex);
+        }
+    }
+
+    public Update getUpdateWithSticker() {
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String json = Files.readString(new ClassPathResource("test-message-update.json").getFile().toPath());
+
+            Update update = objectMapper.readValue(json, Update.class);
+            update.getMessage().setText(null);
+            update.getMessage().setSticker(new Sticker());
+
+            return update;
 
         } catch (IOException ex) {
             throw new RuntimeException("Could not read test-message-update.json", ex);
         }
+    }
+
+    public Map<Adopter, Integer> generateRepositoriesConditionForSchedulingTest() {
+        Map<Adopter, Integer> stats = new HashMap<>();
+
+//        Подготовка: 10 адоптеров, у каждого 29 или 30 принятых отчетов. Т.е. отправлять
+//        решения по адаптации будем более, чем половине всех адоптеров (~70%). % принятых отчетов у всех разный,
+//        но распределен более-менее равномерно, чтоб охватить все ветки от SUCCESS до FAIL
+        List<Adopter> savedAdopters = adopterRepository.saveAll(generateTestAdoptersInCountOf(10));
+        IntStream.rangeClosed(1, savedAdopters.size()).forEach(idx -> {
+
+//            Большая часть адоптеров будет иметь по 30 отчетов, оставшиеся по 29
+            generateTestReportsInCountOf(Math.random() < 0.7 ? 30 : 29).forEach(report -> {
+                report.setAccepted(
+                        switch (idx) {
+                            case 9, 8    -> true;
+                            case 7, 6, 5 -> Math.random() < 0.75;
+                            case 4, 3, 2 -> Math.random() < 0.5;
+                            default      -> false;
+                        }
+                );
+                Adopter adopterWithReport = savedAdopters.get(idx - 1).addReport(report);
+
+                Animal savedAnimal = animalRepository.save(generateTestAnimalsInCountOf(1).getFirst());
+                adopterWithReport.setAnimal(savedAnimal);
+                savedAnimal.setAdopter(savedAdopters.get(idx - 1));
+
+                animalRepository.save(savedAnimal);
+                adopterRepository.save(adopterWithReport);
+                reportRepository.save(report);
+            });
+            stats.put(savedAdopters.get(idx - 1), savedAdopters.get(idx - 1).getReports().size());
+        });
+        return stats;
     }
 }

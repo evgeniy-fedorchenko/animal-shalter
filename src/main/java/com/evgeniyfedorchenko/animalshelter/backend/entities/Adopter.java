@@ -28,9 +28,9 @@ public class Adopter {
     @EqualsAndHashCode.Include
     private long id;
 
-    @Positive(message = "Adopter's chatId must be positive")
+    @Pattern(regexp = "^\\d{5,15}$", message = "Adopter's chatId must contain from 5 to 15 digits and be positive")
     @Column(unique = true)
-    private long chatId;
+    private String chatId;
 
     @NotBlank(message = "Adopter's name should not be blank")
     @Size(max = 50)
@@ -91,7 +91,7 @@ public class Adopter {
 
     @Override
     public String toString() {
-        return "Adopter{id=%d, chatId=%d, name=%s, phoneNumber=%s, assignedReportsQuantity=%d, reportsSize=%d, animal=%s}"
+        return "Adopter{id=%d, chatId=%s, name=%s, phoneNumber=%s, assignedReportsQuantity=%d, reportsSize=%d, animal=%s}"
                 .formatted(
                         id,
                         chatId,

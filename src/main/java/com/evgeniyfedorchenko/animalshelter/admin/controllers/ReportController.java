@@ -5,7 +5,9 @@ import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.repo
 import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.report.GetUnverifiedReportsDocumentation;
 import com.evgeniyfedorchenko.animalshelter.admin.annotations.documentation.report.SendMessageAboutBadReportDocumentation;
 import com.evgeniyfedorchenko.animalshelter.backend.dto.ReportOutputDto;
+import com.evgeniyfedorchenko.animalshelter.backend.repositories.VolunteerRepository;
 import com.evgeniyfedorchenko.animalshelter.backend.services.ReportService;
+import com.evgeniyfedorchenko.animalshelter.backend.services.TelegramService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
@@ -17,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Tag(name = "Reports", description = "Controller for work with reports: receiving, analyzing, and sending warnings to adopters about the low-quality of reports")
 @Validated
@@ -27,14 +28,13 @@ import java.util.concurrent.CompletableFuture;
 public class ReportController {
 
     private final ReportService reportService;
+    private final TelegramService telegramService;
     public static final String BASE_REPORT_URI = "/reports";
-
+    private final VolunteerRepository volunteerRepository;
 
     @GetUnverifiedReportsDocumentation
     @GetMapping
-    public CompletableFuture<List<ReportOutputDto>> getUnverifiedReports(
-//    public List<ReportOutputDto> getUnverifiedReports(
-
+    public List<ReportOutputDto> getUnverifiedReports(
             @Positive(message = "Limit of reports must be positive")
             @Parameter(description = "The requested number of reports to verify them")
             @RequestParam(required = false, defaultValue = "10") int limit) {

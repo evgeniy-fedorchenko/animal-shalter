@@ -1,6 +1,5 @@
 package com.evgeniyfedorchenko.animalshelter.backend.services;
 
-import com.evgeniyfedorchenko.animalshelter.Constants;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Adopter;
 import com.evgeniyfedorchenko.animalshelter.backend.entities.Report;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.ReportRepository;
@@ -15,8 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static com.evgeniyfedorchenko.animalshelter.Constants.ADOPTER_1;
-import static com.evgeniyfedorchenko.animalshelter.Constants.REPORT_1;
+import static com.evgeniyfedorchenko.animalshelter.Constants.generateTestAdoptersInCountOf;
+import static com.evgeniyfedorchenko.animalshelter.Constants.generateTestReportsInCountOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -31,19 +30,22 @@ class ReportServiceImplTest {
     private ReportServiceImpl out;
 
     @Captor
-    private ArgumentCaptor<Long> adopterChatIdCaptor;
+    private ArgumentCaptor<String> adopterChatIdCaptor;
     @Captor
     private ArgumentCaptor<String> messageCaptor;
 
+    private final Adopter testAdopter = generateTestAdoptersInCountOf(1).getFirst();
+    private final Report testReport = generateTestReportsInCountOf(1).getFirst();
+
+
     @BeforeEach
     void BeforeEach() {
-        Constants.testConstantsInitialize();
     }
 
     @Test
     void sendMessageAboutBadReport_positiveTest() {
-        Adopter targetAdopter = ADOPTER_1;
-        Report targetReport = REPORT_1;
+        Adopter targetAdopter = testAdopter;
+        Report targetReport = testReport;
         String targetMessage = "Bad report";
         targetAdopter.addReport(targetReport);
 
@@ -55,7 +57,8 @@ class ReportServiceImplTest {
         assertThat(actual).isTrue();
 
         verify(reportRepositoryMock, times(1)).findById(targetReport.getId());
-        verify(telegramServiceMock, times(1)).sendMessage(adopterChatIdCaptor.capture(), messageCaptor.capture());
+        verify(telegramServiceMock, times(1))
+                .sendMessage(adopterChatIdCaptor.capture(), messageCaptor.capture());
 
         assertThat(adopterChatIdCaptor.getValue()).isEqualTo(targetAdopter.getChatId());
         assertThat(messageCaptor.getValue()).isEqualTo(targetMessage);
@@ -63,13 +66,13 @@ class ReportServiceImplTest {
 
     @Test
     void sendMessageAboutBadReportWhenReportNotFound_negativeTest() {
-        Report targetReport = REPORT_1;
+        Report targetReport = testReport;
         when(reportRepositoryMock.findById(targetReport.getId())).thenReturn(Optional.empty());
 
         boolean actual = out.sendMessageAboutBadReport(targetReport.getId());
         assertThat(actual).isFalse();
 
         verify(reportRepositoryMock, times(1)).findById(targetReport.getId());
-        verify(telegramServiceMock, never()).sendMessage(anyLong(), anyString());
+        verify(telegramServiceMock, never()).sendMessage(anyString(), anyString());
     }
 }

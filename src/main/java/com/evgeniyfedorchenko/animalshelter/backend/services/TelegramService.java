@@ -1,11 +1,15 @@
 package com.evgeniyfedorchenko.animalshelter.backend.services;
 
-import java.net.URL;
+import java.util.Optional;
 
 public interface TelegramService {
 
-    boolean sendMessage(long chatId, String message);
+    boolean sendMessage(String chatId, String message);
 
-    void savePhoto(URL url, Long chatId);
+    Optional<String> getFreeVolunteer();
+
+    void returnVolunteer(String volunteerChatId);
+
+    void makeDecisionAboutAdaptation();
 
 }

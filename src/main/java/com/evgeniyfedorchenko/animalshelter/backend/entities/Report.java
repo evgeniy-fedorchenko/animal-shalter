@@ -64,6 +64,10 @@ public class Report {
     @JoinColumn(name = "adopter_id")
     private Adopter adopter;
 
+    public boolean hasAdopter() {
+        return adopter != null;
+    }
+
     public boolean hasPhotoDataAndMediaType() {
         return photoData != null && photoData.length > 0 && mediaType != null;
     }
@@ -77,7 +81,7 @@ public class Report {
                         health != null ? health : "no health",
                         changeBehavior != null ? changeBehavior : "no changeBehavior",
                         photoData,   // при помощи '%b' выводим false если поле равно null и true в противном случае
-                        DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss").withZone(ZoneId.systemDefault()).format(sendingAt),
+                        sendingAt == null ? "not saved yet" : DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss").withZone(ZoneId.systemDefault()).format(sendingAt),
                         verified,
                         accepted,
                         adopter

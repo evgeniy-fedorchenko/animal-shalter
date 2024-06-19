@@ -19,9 +19,6 @@ public class RepositoryUtils {
     @PersistenceContext
     private final EntityManager entityManager;
 
-    //    todo создать объект для этих параметров
-
-
     /**
      * Метод предлагает гибкий поиск и отображение различных сущностей, находящимся в целевой базе данных.
      * Поддерживается множество параметров
@@ -125,7 +122,6 @@ public class RepositoryUtils {
         }
         return false;
     }
-
 
     /**
      * Метод проверяет, что поле представленное в {@code fieldName} содержит сущность и само находится

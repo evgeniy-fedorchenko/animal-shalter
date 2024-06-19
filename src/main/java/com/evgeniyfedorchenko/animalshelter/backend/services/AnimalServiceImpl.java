@@ -40,7 +40,7 @@ public class AnimalServiceImpl implements AnimalService {
         animal.setType(inputDto.getType());
 
         Animal savedAnimal = animalRepository.save(animal);
-        log.info("Successfully saved: {}", savedAnimal);
+        log.debug("Animal saved: {}", savedAnimal);
         return Optional.of(animalMapper.toOutputDto(savedAnimal));
     }
 
@@ -52,13 +52,14 @@ public class AnimalServiceImpl implements AnimalService {
     }
 
     @Override
+    @Transactional
     public List<AnimalOutputDto> searchAnimals(String sortParam, SortOrder sortOrder, int pageNumber, int pageSize) {
 
         int offset = (pageNumber - 1) * pageSize;
         List<Animal> animals =
                 (List<Animal>) repositoryUtils.searchEntities(Animal.class, sortParam, sortOrder, pageSize, offset);
 
-        log.debug("Calling searchAdopters with params: sortParam={}, sortOrder={}, pageNumber={}, pageSize={} returned student's ids: {}",
+        log.trace("Calling searchAdopters with params: sortParam={}, sortOrder={}, pageNumber={}, pageSize={} returned student's ids: {}",
                 sortParam, sortOrder, pageNumber, pageSize, animals.stream().map(Animal::getId).toList());
 
         return animals.stream().map(animalMapper::toOutputDto).toList();
@@ -96,11 +97,10 @@ public class AnimalServiceImpl implements AnimalService {
                 adopterRepository.save(adopter);
                 animalRepository.save(animal);
 
-                log.info("Animal {} assigned to adopter {}", animal.getId(), adopter.getId());
+                log.debug("Animal {} assigned to adopter {}", animal.getId(), adopter.getId());
             }
         });
         return futureBool;
-
     }
 
     @Override
@@ -112,6 +112,13 @@ public class AnimalServiceImpl implements AnimalService {
             return false;
         }
         animalRepository.deleteById(id);
+        log.debug("Animal deleted {}", animal.get());
         return true;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Animal getFreeAnimal() {
+        return animalRepository.findFirstByAdopterIsNull().orElseThrow();
     }
 }

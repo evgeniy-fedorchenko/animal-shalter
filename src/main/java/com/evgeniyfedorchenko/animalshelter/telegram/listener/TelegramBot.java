@@ -24,12 +24,12 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private final MainHandler mainHandler;
     private final TelegramExecutor telegramExecutor;
-    private final RedisTemplate<Long, Long> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
 
     public TelegramBot(@Value("${telegram.bot.token}") String botToken,
                        MainHandler mainHandler,
                        TelegramExecutor telegramExecutor,
-                       RedisTemplate<Long, Long> redisTemplate) {
+                       RedisTemplate<String, String> redisTemplate) {
         super(botToken);
         this.mainHandler = mainHandler;
         this.telegramExecutor = telegramExecutor;
@@ -50,12 +50,12 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         if (update != null) {
 
-            log.info("Processing has BEGUN for updateID {}", update.getUpdateId());
+            log.debug("Processing has BEGUN for updateID {}", update.getUpdateId());
 
             PartialBotApiMethod<? extends Serializable> messToSend = distributeUpdate(update);
             Optional.ofNullable(messToSend).ifPresent(telegramExecutor::send);
 
-            log.info("Processing has successfully ENDED for updateID {}", update.getUpdateId());
+            log.debug("Processing has successfully ENDED for updateID {}", update.getUpdateId());
         }
     }
 
@@ -64,19 +64,17 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             Message message = update.getMessage();
 
-            Long communicatingChatId = redisTemplate.opsForValue().get(message.getChatId());
-            if (communicatingChatId != null) {
-                return mainHandler.communicationWithVolunteer(message);
+            String specialBehaviorId = redisTemplate.opsForValue().get(String.valueOf(message.getChatId()));
+            if (specialBehaviorId != null) {
+                return Long.parseLong(specialBehaviorId) > 0
+                        ? mainHandler.chattingWithVolunteerProcess(message, specialBehaviorId)
+                        : mainHandler.sendReportProcess(message, specialBehaviorId);
             }
 
             if (message.hasText()) {
-                boolean command = message.isCommand();
-                return command
+                return message.isCommand()
                         ? mainHandler.handleCommands(update)
                         : mainHandler.applyUnknownUserAction(update);
-
-            } else if (message.hasPhoto()) {
-                return mainHandler.savePhoto(message).join();
             }
         } else if (update.hasCallbackQuery()) {
             return mainHandler.handleCallbacks(update);
