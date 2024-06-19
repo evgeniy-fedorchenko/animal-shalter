@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.util.Pair;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +21,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import static com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.report.ReportPart.*;
 
@@ -36,21 +34,19 @@ public class ReportServiceImpl implements ReportService {
     private final ReportMapper reportMapper;
     private final AdopterRepository adopterRepository;
 
-    @Async
     @Override
     @Transactional
-    public CompletableFuture<List<ReportOutputDto>> getUnverifiedReports(int limit) {
+    public List<ReportOutputDto> getUnverifiedReports(int limit) {
 
-        CompletableFuture<List<ReportOutputDto>> futureList = CompletableFuture.supplyAsync(() ->
+        List<ReportOutputDto> reports =
                 reportRepository.findOldestUnviewedReports(PageRequest.of(0, limit)).stream()
                         .map(reportMapper::toDto)
-                        .toList());
+                        .toList();
 
-        futureList.thenAccept(list -> {
-            List<Long> idsForUpdate = list.stream().map(ReportOutputDto::getId).toList();
-            reportRepository.updateReportsVerifiedStatus(idsForUpdate);
-        });
-        return futureList;
+        reportRepository.updateReportsVerifiedStatus(
+                reports.stream().map(ReportOutputDto::getId).toList()
+        );
+        return reports;
     }
 
     @Override
@@ -95,10 +91,14 @@ public class ReportServiceImpl implements ReportService {
 
         /* Нужно void-действие для случая, когда report.get...() != null, а такой есть только
            в .ifPresentOrElse(). В .orElse(), .orElseGet() неподходящие действия */
-        Optional.ofNullable(report.getDiet()).ifPresentOrElse(_ -> {},           () -> unsentParts.add(DIET));
-        Optional.ofNullable(report.getHealth()).ifPresentOrElse(_ -> {},         () -> unsentParts.add(HEALTH));
-        Optional.ofNullable(report.getChangeBehavior()).ifPresentOrElse(_ -> {}, () -> unsentParts.add(BEHAVIOR));
-        Optional.ofNullable(report.getPhotoData()).ifPresentOrElse(_ -> {},      () -> unsentParts.add(PHOTO));
+        Optional.ofNullable(report.getDiet()).ifPresentOrElse(_ -> {
+        }, () -> unsentParts.add(DIET));
+        Optional.ofNullable(report.getHealth()).ifPresentOrElse(_ -> {
+        }, () -> unsentParts.add(HEALTH));
+        Optional.ofNullable(report.getChangeBehavior()).ifPresentOrElse(_ -> {
+        }, () -> unsentParts.add(BEHAVIOR));
+        Optional.ofNullable(report.getPhotoData()).ifPresentOrElse(_ -> {
+        }, () -> unsentParts.add(PHOTO));
 
         this.linkIfFalse(adopter, report, report.hasAdopter());
 

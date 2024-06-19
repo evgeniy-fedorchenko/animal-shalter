@@ -101,7 +101,6 @@ public class AnimalServiceImpl implements AnimalService {
             }
         });
         return futureBool;
-
     }
 
     @Override
@@ -118,7 +117,7 @@ public class AnimalServiceImpl implements AnimalService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Animal getFreeAnimal() {
         return animalRepository.findFirstByAdopterIsNull().orElseThrow();
     }

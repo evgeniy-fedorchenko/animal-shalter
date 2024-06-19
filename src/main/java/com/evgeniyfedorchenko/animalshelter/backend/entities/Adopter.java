@@ -28,7 +28,7 @@ public class Adopter {
     @EqualsAndHashCode.Include
     private long id;
 
-    @Positive(message = "Adopter's chatId must be positive")
+    @Pattern(regexp = "^\\d{5,15}$", message = "Adopter's chatId must contain from 5 to 15 digits and be positive")
     @Column(unique = true)
     private String chatId;
 

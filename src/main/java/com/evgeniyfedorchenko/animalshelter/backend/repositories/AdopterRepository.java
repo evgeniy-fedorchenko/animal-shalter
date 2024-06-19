@@ -14,5 +14,4 @@ public interface AdopterRepository extends JpaRepository<Adopter, Long> {
     @Query("SELECT a FROM Adopter a WHERE a.assignedReportsQuantity = (SELECT COUNT(r) FROM Report r WHERE r.adopter = a)")
     List<Adopter> findAdoptersWithMatchingQuantityReports();
 
-//    List<Adopter> findByQuantityEqualsAllReportCount();
 }

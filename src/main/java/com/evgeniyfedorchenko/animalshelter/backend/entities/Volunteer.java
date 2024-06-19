@@ -2,7 +2,7 @@ package com.evgeniyfedorchenko.animalshelter.backend.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -28,7 +28,7 @@ public class Volunteer {
     @Size(max = 30, message = "Volunteer's name must be shorter than 30 symbols")
     private String name;
 
-    @Positive(message = "Volunteer's chatId must be positive")
+    @Pattern(regexp = "^\\d{5,15}$", message = "Volunteer's chatId must contain from 5 to 15 digits and be positive")
     @Column(unique = true)
     private String chatId;
 

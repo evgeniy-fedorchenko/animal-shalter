@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Tag(name = "Reports", description = "Controller for work with reports: receiving, analyzing, and sending warnings to adopters about the low-quality of reports")
 @Validated
@@ -35,7 +34,7 @@ public class ReportController {
 
     @GetUnverifiedReportsDocumentation
     @GetMapping
-    public CompletableFuture<List<ReportOutputDto>> getUnverifiedReports(
+    public List<ReportOutputDto> getUnverifiedReports(
             @Positive(message = "Limit of reports must be positive")
             @Parameter(description = "The requested number of reports to verify them")
             @RequestParam(required = false, defaultValue = "10") int limit) {

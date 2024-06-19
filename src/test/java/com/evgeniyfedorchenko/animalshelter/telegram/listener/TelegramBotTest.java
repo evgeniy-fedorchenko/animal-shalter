@@ -14,7 +14,9 @@ import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.commands.Vo
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.menu.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -41,7 +43,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -50,6 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Import(RedisTestConfiguration.class)
 @ActiveProfiles("test")
 class TelegramBotTest {
@@ -73,6 +75,7 @@ class TelegramBotTest {
 
     @Autowired
     private TestUtils<Adopter> testUtils;
+    private static TestUtils<?> testUtilsStatic;
 
     @AfterEach
     public void cleanRedis() {
@@ -80,6 +83,11 @@ class TelegramBotTest {
         if (keys != null && !keys.isEmpty()) {
             redisTemplateMock.delete(keys);
         }
+    }
+
+    @BeforeAll
+    public void initStaticUtils() {
+        testUtilsStatic = applicationContext.getBean(TestUtils.class);
     }
 
     private static Stream<Arguments> provideArgumentsForCommandsPositiveTest() {
@@ -207,7 +215,7 @@ class TelegramBotTest {
         when(valueOperationsMock.get(expectedChatId)).thenReturn(null);
         when(telegramExecutorMock.send(any(PartialBotApiMethod.class))).thenReturn(true);
         when(telegramServiceImplMock.getFreeVolunteer())
-                .thenReturn(CompletableFuture.completedFuture(Optional.of(freeVolunteerChatId)));
+                .thenReturn(Optional.of(freeVolunteerChatId));
 
         doNothing().when(valueOperationsMock).set(expectedChatId, freeVolunteerChatId);
         doNothing().when(valueOperationsMock).set(freeVolunteerChatId, expectedChatId);
@@ -305,12 +313,12 @@ class TelegramBotTest {
     }
 
     private static Stream<Arguments> provideParamsForChattingWithVolunteerProcessPositiveTest() {
-        TestUtils<?> testUtilsInStatic = new TestUtils<>();
+
         return Stream.of(
-                Arguments.of(testUtilsInStatic.getUpdateWithSticker()),   // Стикер
-                Arguments.of(testUtilsInStatic.getUpdateWithMessage(null, false, true)),                 // Только фото
-                Arguments.of(testUtilsInStatic.getUpdateWithMessage("message and photo", false, false)), // Только сообщение
-                Arguments.of(testUtilsInStatic.getUpdateWithMessage("message and photo", false, true))   // Сообщение и фото
+                Arguments.of(testUtilsStatic.getUpdateWithSticker()),   // Стикер
+                Arguments.of(testUtilsStatic.getUpdateWithMessage(null, false, true)),                 // Только фото
+                Arguments.of(testUtilsStatic.getUpdateWithMessage("message and photo", false, false)), // Только сообщение
+                Arguments.of(testUtilsStatic.getUpdateWithMessage("message and photo", false, true))   // Сообщение и фото
         );
     }
 

@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
 
 import static com.evgeniyfedorchenko.animalshelter.Constants.generateTestVolunteersInCountOf;
 import static com.evgeniyfedorchenko.animalshelter.backend.services.TelegramServiceImpl.AdaptationDecision.*;
@@ -159,7 +158,7 @@ class TelegramServiceImplTest {
 
         Volunteer savedVolunteer = volunteerRepository.save(targetVolunteer);
 
-        String calledVolunteerChatId = telegramService.getFreeVolunteer().join().orElseThrow();
+        String calledVolunteerChatId = telegramService.getFreeVolunteer().orElseThrow();
         Thread.sleep(2000);
 
         assertThat(calledVolunteerChatId).isNotEmpty();
@@ -173,15 +172,9 @@ class TelegramServiceImplTest {
         List<Volunteer> volunteers = generateTestVolunteersInCountOf(10, 0.0);
         volunteerRepository.saveAll(volunteers);
 
-        CompletableFuture<Optional<String>> futureFreeVolunteerChatId = telegramService.getFreeVolunteer();
+        Optional<String> freeVolunteerChatIdOpt = telegramService.getFreeVolunteer();
+        assertThat(freeVolunteerChatIdOpt).isEmpty();
 
-        Optional<String> volunteerChatIdOpt = futureFreeVolunteerChatId.join();
-        assertThat(futureFreeVolunteerChatId)
-                .isNotNull()
-                .isNotCancelled()
-                .isCompleted();
-
-        assertThat(volunteerChatIdOpt).isEmpty();
         assertThat(
                 volunteerRepository.findAll().stream()
                         .map(Volunteer::isFree)

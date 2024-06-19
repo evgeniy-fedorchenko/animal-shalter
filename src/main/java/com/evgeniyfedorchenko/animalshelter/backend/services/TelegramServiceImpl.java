@@ -10,14 +10,12 @@ import com.evgeniyfedorchenko.animalshelter.telegram.listener.TelegramExecutor;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.evgeniyfedorchenko.animalshelter.backend.services.TelegramServiceImpl.AdaptationDecision.*;
@@ -38,17 +36,14 @@ public class TelegramServiceImpl implements TelegramService {
         return telegramExecutor.send(sendMessage);
     }
 
-    @Async
     @Override
     @Transactional
-    public CompletableFuture<Optional<String>> getFreeVolunteer() {
+    public Optional<String> getFreeVolunteer() {
 
-        CompletableFuture<Optional<String>> f = CompletableFuture.supplyAsync(() ->
-                        volunteerRepository.findFirstByFreeIsTrue().map(Volunteer::getChatId));
+        Optional<String> chatIdOpt = volunteerRepository.findFirstByFreeIsTrue().map(Volunteer::getChatId);
+        chatIdOpt.ifPresent(chatId -> volunteerRepository.setStatusToVolunteerWithChatId(false, chatId));
 
-        f.thenAcceptAsync(chatIdOpt -> chatIdOpt.ifPresent(chatId ->
-                volunteerRepository.setStatusToVolunteerWithChatId(false, chatId)));
-        return f;
+        return chatIdOpt;
     }
 
     @Override

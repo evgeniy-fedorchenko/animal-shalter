@@ -19,7 +19,7 @@ import lombok.*;
 public class AdopterInputDto {
 
     @Schema(description = "Id of the telegram-chat for communication with this adoptive parent", example = "1234567890")
-    @Positive(message = "Adopter's chatId must be positive")
+    @Pattern(regexp = "^\\d{5,15}$", message = "Adopter's chatId must contain from 5 to 15 digits and be positive")
     private String chatId;
 
     @Schema(description = "The name of this adoptive parent", example = "Will Smith")

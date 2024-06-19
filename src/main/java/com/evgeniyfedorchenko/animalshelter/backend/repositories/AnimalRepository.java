@@ -7,6 +7,5 @@ import java.util.Optional;
 
 public interface AnimalRepository extends JpaRepository<Animal, Long> {
 
-//    @Query("SELECT a FROM Animal a WHERE a.adopter IS NULL")
     Optional<Animal> findFirstByAdopterIsNull();
 }

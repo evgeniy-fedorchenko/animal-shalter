@@ -61,11 +61,13 @@ public class TestUtils<E> {
     private AnimalRepository animalRepository;
     @Autowired
     private ReportRepository reportRepository;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Getter
     @AllArgsConstructor
     public enum Format {
-        //        ImageIO.write() не желает принимать "image/png", только "png"; аналогично с jpeg
+        // ImageIO.write() не желает принимать "image/png", только "png"; аналогично с jpeg
         PNG(MediaType.IMAGE_PNG_VALUE, "png"),
         JPG(MediaType.IMAGE_JPEG_VALUE, "jpg");
 
@@ -248,8 +250,6 @@ public class TestUtils<E> {
     public Update getUpdateWithMessage(@Nullable String messText, boolean isCommand, boolean withPhoto) {
 
         Update update;
-        ObjectMapper objectMapper = new ObjectMapper();
-
         try {
             String json = Files.readString(new ClassPathResource("test-message-update.json").getFile().toPath());
             if (messText == null) {
@@ -338,7 +338,6 @@ public class TestUtils<E> {
                             default      -> false;
                         }
                 );
-//                report.setAccepted(Math.random() > 0.2);
                 Adopter adopterWithReport = savedAdopters.get(idx - 1).addReport(report);
 
                 Animal savedAnimal = animalRepository.save(generateTestAnimalsInCountOf(1).getFirst());

@@ -34,7 +34,7 @@ public class VolunteerChatting {
         //  не вставал. Хотя все равно каждый юзер пользуется ботом в своем потоке
 
         String messToVolunteer = "Волонтер! Требуется твоя помощь, отправь приветственное сообщение в этот чат";
-        Optional<String> chatIdOpt = telegramService.getFreeVolunteer().join();
+        Optional<String> chatIdOpt = telegramService.getFreeVolunteer();
 
         if (chatIdOpt.isPresent()) {
             String volunteerChatId = chatIdOpt.get();

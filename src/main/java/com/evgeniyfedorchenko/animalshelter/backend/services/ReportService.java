@@ -11,11 +11,10 @@ import org.springframework.http.MediaType;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 public interface ReportService {
 
-    CompletableFuture<List<ReportOutputDto>> getUnverifiedReports(int limit);
+    List<ReportOutputDto> getUnverifiedReports(int limit);
 
     Optional<ReportOutputDto> getReportById(long id);
 
