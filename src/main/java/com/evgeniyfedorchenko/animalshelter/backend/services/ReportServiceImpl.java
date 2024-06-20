@@ -6,21 +6,27 @@ import com.evgeniyfedorchenko.animalshelter.backend.entities.Report;
 import com.evgeniyfedorchenko.animalshelter.backend.mappers.ReportMapper;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.AdopterRepository;
 import com.evgeniyfedorchenko.animalshelter.backend.repositories.ReportRepository;
+import com.evgeniyfedorchenko.animalshelter.telegram.configuration.RedisConfiguration;
 import com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.report.ReportPart;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.util.Pair;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.evgeniyfedorchenko.animalshelter.telegram.handler.actions.report.ReportPart.*;
 
@@ -33,13 +39,14 @@ public class ReportServiceImpl implements ReportService {
     private final ReportRepository reportRepository;
     private final ReportMapper reportMapper;
     private final AdopterRepository adopterRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Override
     @Transactional
     public List<ReportOutputDto> getUnverifiedReports(int limit) {
 
         List<ReportOutputDto> reports =
-                reportRepository.findOldestUnviewedReports(PageRequest.of(0, limit)).stream()
+                reportRepository.findOldestUnverifiedReports(PageRequest.of(0, limit)).stream()
                         .map(reportMapper::toDto)
                         .toList();
 
@@ -83,7 +90,12 @@ public class ReportServiceImpl implements ReportService {
     @Override
     @Transactional
     public List<ReportPart> checkUnsentReportParts(String chatId) {
-        Report report = reportRepository.findNewestReportByAdopterChatId(chatId).orElseGet(Report::new);
+
+        Report report = reportRepository.findNewestReportByAdopterChatId(chatId).orElse(null);
+        if (report == null) {
+            return Arrays.asList(ReportPart.values());
+        }
+
         Adopter adopter = adopterRepository.findByChatId(chatId)
                 .orElseThrow(() -> new EntityNotFoundException("Adopter of this report not found"));
 
@@ -101,6 +113,7 @@ public class ReportServiceImpl implements ReportService {
         }, () -> unsentParts.add(PHOTO));
 
         this.linkIfFalse(adopter, report, report.hasAdopter());
+        report.setSendingAt(Instant.now());
 
         adopterRepository.save(adopter);
         reportRepository.save(report);
@@ -126,13 +139,48 @@ public class ReportServiceImpl implements ReportService {
             case PHOTO -> {
                 report.setPhotoData(reportPartData);
                 if (mediaType != null) {
-                    report.setMediaType(mediaType.getType());
+                    report.setMediaType(mediaType.toString());
                 }
             }
         }
         this.linkIfFalse(adopter, report, report.hasAdopter());
+        report.setSendingAt(Instant.now());
 
         adopterRepository.save(adopter);
         reportRepository.save(report);
+    }
+
+
+    /**
+     * Метод для очистки {@code RedisTemplate} от застоявшихся ключей.
+     * Застоявшимися считаются ключи, котороые указывают на {@code chatId} юзеров, которые иницировали
+     * отправку отчета, и в течении получаса ничего не прислали. Метод опирается на поле {@code sendingAt}
+     * объекта {@code Report} (поле обновляется каждый раз когда юзер отправляет часть отчета)
+     * из таблицы {@code reports} базы данных {@code shelter-db}
+     *
+     * @apiNote При остановке приложения на профиле {@code dev} <b>все</b> ключи удаляются автоматически
+     * @see RedisConfiguration
+     */
+    @Scheduled(fixedDelay = 30, timeUnit = TimeUnit.MINUTES)
+    public void cleanRedis() {
+
+        List<String> keysToDelete = new ArrayList<>();
+        try (Cursor<String> cursor = redisTemplate.scan(ScanOptions.scanOptions().match("[-\\d]").build())) {
+
+            while (cursor.hasNext()) {
+                String key = cursor.next();
+                String value = redisTemplate.opsForValue().get(key);
+
+                if (value != null) {
+                    Optional<Report> reportOpt = reportRepository.findNewestReportByAdopterChatId(value);
+                        if (reportOpt.isPresent() && Duration.between(Instant.now(), reportOpt.get().getSendingAt()).toMinutes() > 10) {
+                            keysToDelete.add(key);
+                        }
+                }
+            }
+        }
+        if (!keysToDelete.isEmpty()) {
+            redisTemplate.delete(keysToDelete);
+        }
     }
 }

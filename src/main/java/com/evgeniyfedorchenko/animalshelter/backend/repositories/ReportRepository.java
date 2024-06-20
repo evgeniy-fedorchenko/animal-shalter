@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
     @Query("SELECT report FROM Report report WHERE report.verified = false ORDER BY report.sendingAt ASC")
-    List<Report> findOldestUnviewedReports(Pageable pageable);
+    List<Report> findOldestUnverifiedReports(Pageable pageable);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("UPDATE Report r SET r.verified = true WHERE r.id IN (:ids)")

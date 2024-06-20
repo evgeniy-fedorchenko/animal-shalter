@@ -27,7 +27,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.context.ActiveProfiles;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -40,6 +42,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -79,8 +82,16 @@ class TelegramBotTest {
 
     @AfterEach
     public void cleanRedis() {
-        Set<String> keys = redisTemplateMock.keys("*");
-        if (keys != null && !keys.isEmpty()) {
+
+        Set<String> keys = new HashSet<>();
+        ScanOptions scanOptions = ScanOptions.scanOptions().match("[-\\d]").build();
+
+        try (Cursor<String> cursor = redisTemplateMock.scan(scanOptions)) {
+
+            while (cursor.hasNext()) {
+                keys.add(cursor.next());
+            }
+
             redisTemplateMock.delete(keys);
         }
     }

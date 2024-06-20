@@ -29,7 +29,7 @@ public interface ReportService {
     default void linkIfFalse(Adopter adopter, Report report, boolean condition) {
         if (!condition) {
             adopter.addReport(report);
-            report.setSendingAt(Instant.now());
+//            report.setSendingAt(Instant.now());
         }
     }
 }
