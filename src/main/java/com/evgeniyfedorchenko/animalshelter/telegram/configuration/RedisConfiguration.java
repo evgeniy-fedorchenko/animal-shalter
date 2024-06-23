@@ -9,11 +9,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
-import java.util.HashSet;
 import java.util.Set;
 
 @Slf4j
@@ -29,6 +27,8 @@ public class RedisConfiguration implements ApplicationListener<ContextClosedEven
     public RedisTemplate<String, String> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, String> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new StringRedisSerializer());
 
         log.info("No-test config of redisTemplate active");
 
@@ -44,13 +44,8 @@ public class RedisConfiguration implements ApplicationListener<ContextClosedEven
                         && redisTemplate != null
         ) {
 
-            Set<String> keys = new HashSet<>();
-            try (Cursor<String> cursor = redisTemplate.scan(ScanOptions.scanOptions().match("[-\\d]").build())) {
-
-                while (cursor.hasNext()) {
-                    keys.add(cursor.next());
-                }
-
+            Set<String> keys = redisTemplate.keys("*");
+            if (keys != null) {
                 redisTemplate.delete(keys);
             }
 

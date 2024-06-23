@@ -23,11 +23,19 @@ import java.lang.annotation.Target;
                 content = @Content(
                         mediaType = MediaType.APPLICATION_JSON_VALUE,
                         schema = @Schema(implementation = AdopterInputDto.class),
-                        examples = @ExampleObject(
-                                name = "Adopter",
-                                description = "Example of adding object",
-                                value =  "{\n\"chatId\": 123456789,\n\"name\": \"John Doe\",\n\"phoneNumber\": \"+79991234567\",\n\"animalId\": 42\n}"
-                        )
+                        examples = {
+                                @ExampleObject(
+                                        name = "Adopter with animal",
+                                        description = "Example of adding object",
+                                        value =  "{\n\"chatId\": 123456789,\n\"name\": \"John Doe\",\n\"phoneNumber\": \"+79991234567\",\n\"animalId\": 42\n}"
+                                ),
+                                @ExampleObject(
+                                        name = "Adopter without animal",
+                                        description = "Example of adding object",
+                                        value =  "{\n\"chatId\": 123456789,\n\"name\": \"John Doe\",\n\"phoneNumber\": \"+79991234567\"}"
+                                )
+
+                        }
                 )
         ),
         responses = {

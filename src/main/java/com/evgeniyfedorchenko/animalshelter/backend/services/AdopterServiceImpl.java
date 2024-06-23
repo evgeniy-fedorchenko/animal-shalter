@@ -82,7 +82,9 @@ public class AdopterServiceImpl implements AdopterService {
             return false;
         }
         log.debug("Deleted adopter: {} with all his reports", adopterOpt.get());
+
         adopterRepository.deleteById(id);
+
         return true;
     }
 

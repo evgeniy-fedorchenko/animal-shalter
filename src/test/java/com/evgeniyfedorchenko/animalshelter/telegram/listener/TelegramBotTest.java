@@ -69,6 +69,8 @@ class TelegramBotTest {
     private TelegramBot telegramBot;
 
     @MockBean
+    private Cursor<String> cursorMock;
+    @MockBean
     private ValueOperations<String, String> valueOperationsMock;
     @MockBean
     private RedisTemplate<String, String> redisTemplateMock;
@@ -83,10 +85,10 @@ class TelegramBotTest {
     @AfterEach
     public void cleanRedis() {
 
+        when(redisTemplateMock.scan(any(ScanOptions.class))).thenReturn(cursorMock);
         Set<String> keys = new HashSet<>();
-        ScanOptions scanOptions = ScanOptions.scanOptions().match("[-\\d]").build();
 
-        try (Cursor<String> cursor = redisTemplateMock.scan(scanOptions)) {
+        try (Cursor<String> cursor = redisTemplateMock.scan(ScanOptions.scanOptions().match("*").build())) {
 
             while (cursor.hasNext()) {
                 keys.add(cursor.next());

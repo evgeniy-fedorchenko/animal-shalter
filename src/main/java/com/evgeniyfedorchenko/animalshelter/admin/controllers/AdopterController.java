@@ -61,7 +61,7 @@ public class AdopterController {
 
             @Parameter(description = "The page size of the found adopters. It works in conjunction with the page number")
             @Positive(message = "Size of page must be positive")
-            @RequestParam(required = false, defaultValue = "1") int pageSize
+            @RequestParam(required = false, defaultValue = "2147483647") int pageSize
     ) {
         return adopterService.searchAdopters(sortParam, sortOrder, pageSize, pageNumber);
     }

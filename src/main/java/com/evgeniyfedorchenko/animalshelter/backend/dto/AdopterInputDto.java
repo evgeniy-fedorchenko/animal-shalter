@@ -13,7 +13,6 @@ import lombok.*;
 @Setter
 @ToString
 @NoArgsConstructor
-@AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "Представление объекта Adopter, для сохранения в базу данных и привязки к объекту Animal (опционально)")
 public class AdopterInputDto {

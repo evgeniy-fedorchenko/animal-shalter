@@ -24,11 +24,18 @@ import java.lang.annotation.Target;
                 content = @Content(
                         mediaType = MediaType.APPLICATION_JSON_VALUE,
                         schema = @Schema(implementation = AnimalInputDto.class),
-                        examples = @ExampleObject(
-                                name = "Animal",
-                                description = "Example of adding object",
-                                value =  "{\"name\":\"Fluffy\",\"isAdult\":true,\"adopterId\":123}"
-                        )
+                        examples = {
+                                @ExampleObject(
+                                        name = "Animal with adopter",
+                                        description = "Example of adding object",
+                                        value = "{\"name\":\"Fluffy\",\"isAdult\":true,\"adopterId\":12,\"type\":\"DOG\"}"
+                                ),
+                                @ExampleObject(
+                                        name = "Animal without adopter",
+                                        description = "Example of adding object",
+                                        value = "{\"name\":\"Fluffy\",\"isAdult\":true,\"type\":\"DOG\"}"
+                                )
+                        }
                 )
         ),
         responses = {

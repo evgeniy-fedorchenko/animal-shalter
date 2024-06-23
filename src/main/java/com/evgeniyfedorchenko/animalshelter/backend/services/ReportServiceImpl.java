@@ -165,7 +165,7 @@ public class ReportServiceImpl implements ReportService {
     public void cleanRedis() {
 
         List<String> keysToDelete = new ArrayList<>();
-        try (Cursor<String> cursor = redisTemplate.scan(ScanOptions.scanOptions().match("[-\\d]").build())) {
+        try (Cursor<String> cursor = redisTemplate.scan(ScanOptions.scanOptions().match("*").build())) {
 
             while (cursor.hasNext()) {
                 String key = cursor.next();
@@ -173,7 +173,8 @@ public class ReportServiceImpl implements ReportService {
 
                 if (value != null) {
                     Optional<Report> reportOpt = reportRepository.findNewestReportByAdopterChatId(value);
-                        if (reportOpt.isPresent() && Duration.between(Instant.now(), reportOpt.get().getSendingAt()).toMinutes() > 10) {
+                        if (reportOpt.isPresent()
+                                && Duration.between(Instant.now(), reportOpt.get().getSendingAt()).toMinutes() > 10) {
                             keysToDelete.add(key);
                         }
                 }

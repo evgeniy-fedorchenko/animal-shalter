@@ -19,7 +19,7 @@ public class RedisTestConfiguration {
         RedisTemplate<String, String> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
-        log.error("Test config of redisTemplate active");
+        log.debug("Test config of redisTemplate active");
         return template;
     }
 }

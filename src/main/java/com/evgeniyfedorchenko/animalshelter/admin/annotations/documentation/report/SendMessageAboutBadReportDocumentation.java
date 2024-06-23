@@ -21,16 +21,15 @@ import java.lang.annotation.Target;
                 @ApiResponse(
                         responseCode = "400",
                         description = "The message could not be sent, please check if there is a report with the specified number. Use the links to find out",
-                        links = {
-                                @Link(
-                                        name = "Check for report",
-                                        operationRef = "http://localhost:8080/reports/{id}",
-                                        parameters = @LinkParameter(
-                                                name = "id",
-                                                expression = "Id of target report")
+                        links = @Link(
+                                name = "Check for report",
+                                operationRef = "http://localhost:8080/reports/{id}",
+                                parameters = @LinkParameter(
+                                        name = "id",
+                                        expression = "Id of target report")
 
-                                )
-                        }
+                        )
+
                 )
         }
 )
